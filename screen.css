@@ -1,0 +1,34 @@
+#toc_container ul, #toc_container li {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+}
+#toc_container {
+	background: #f9f9f9;
+	border: 1px solid #aaa;
+	padding: 10px;
+	margin-bottom: 1em;
+	width: 278px;
+	font-size: 95%;
+}
+.toc_title {
+	text-align: center;
+	font-weight: bold;
+}
+.toc_wrap_left {
+	float: left;
+	margin-right: 10px;
+}
+.toc_wrap_right {
+	float: right;
+	margin-left: 10px;
+}
+#toc_container ul ul {
+	margin-left: 1.5em;
+}
+#toc_container a {
+	text-decoration: none;
+}
+#toc_container a:hover {
+	text-decoration: underline;
+}
