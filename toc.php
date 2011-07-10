@@ -5,7 +5,7 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1107
+Version: 		1107.1
 License:		GPL2
 */
 
@@ -27,7 +27,6 @@ License:		GPL2
 
 /**
 FOR CONSIDERATION:
-- shortcode (custom position)
 - support headings already with an id
 - back to top links
 - sitemap
@@ -35,8 +34,6 @@ FOR CONSIDERATION:
 	- support other taxonomies
 - advanced options
 	- width
-	- colour variations
-	- jquery smooth scroll
 	- highlight target css
 */
 
@@ -50,6 +47,11 @@ define( 'TOC_MAX_START', 10 );
 define( 'TOC_WRAPPING_NONE', 0 );
 define( 'TOC_WRAPPING_LEFT', 1 );
 define( 'TOC_WRAPPING_RIGHT', 2 );
+define( 'TOC_THEME_GREY', 1 );
+define( 'TOC_THEME_LIGHT_BLUE', 2 );
+define( 'TOC_THEME_WHITE', 3 );
+define( 'TOC_THEME_BLACK', 4 );
+define( 'TOC_THEME_CUSTOM', 100 );
 
 
 if ( !class_exists( 'toc' ) ) :
@@ -74,7 +76,9 @@ if ( !class_exists( 'toc' ) ) :
 				'auto_insert_post_types' => array('page'),
 				'show_heirarchy' => true,
 				'ordered_list' => true,
+				'smooth_scroll' => false,
 				'wrapping' => TOC_WRAPPING_NONE,
+				'theme' => TOC_THEME_GREY,
 				'sitemap_show_page_listing' => true,
 				'sitemap_show_category_listing' => true,
 				'sitemap_heading_type' => 3,
@@ -86,6 +90,7 @@ if ( !class_exists( 'toc' ) ) :
 			
 			add_action( 'init', array(&$this, 'init') );
 			add_action( 'wp_print_styles', array(&$this, 'public_styles') );
+			add_action( 'template_redirect', array(&$this, 'template_redirect') );
 			add_action( 'admin_init', array(&$this, 'admin_init') );
 			add_action( 'admin_menu', array(&$this, 'admin_menu') );
 			
@@ -93,6 +98,7 @@ if ( !class_exists( 'toc' ) ) :
 			add_filter( 'plugin_action_links', array(&$this, 'plugin_action_links'), 10, 2 );
 			add_filter( 'widget_text', 'do_shortcode' );
 			
+			add_shortcode( 'toc', array(&$this, 'shortcode_toc') );
 			add_shortcode( 'no_toc', array(&$this, 'shortcode_no_toc') );
 			add_shortcode( 'sitemap', array(&$this, 'shortcode_sitemap') );
 			add_shortcode( 'sitemap_pages', array(&$this, 'shortcode_sitemap_pages') );
@@ -107,11 +113,20 @@ if ( !class_exists( 'toc' ) ) :
 		
 		function plugin_action_links( $links, $file )
 		{
-			if ( $file == "toc/" . basename(__FILE__) ) {
+			if ( $file == 'table-of-contents-plus/' . basename(__FILE__) ) {
 				$settings_link = '<a href="options-general.php?page=toc">' . __('Settings') . '</a>';
 				$links = array_merge( array( $settings_link ), $links );
 			}
 			return $links;
+		}
+		
+		
+		function shortcode_toc( $atts )
+		{
+			if ( !is_search() && !is_archive() )
+				return '<!--TOC-->';
+			else
+				return;
 		}
 		
 		
@@ -206,10 +221,8 @@ if ( !class_exists( 'toc' ) ) :
 		function init()
 		{
 			wp_register_style( 'toc-screen', $this->path . '/screen.css' );
-			wp_register_script( 'toc-front', $this->path . '/front.js' );
-			
-			wp_enqueue_script( 'jquery' );
-			wp_enqueue_script( 'toc-front' );
+			wp_register_script( 'smooth-scroll', $this->path . '/jquery.smooth-scroll.min.js', array('jquery') );
+			wp_register_script( 'toc-front', $this->path . '/front.js', array('jquery') );
 		}
 		
 		
@@ -224,8 +237,8 @@ if ( !class_exists( 'toc' ) ) :
 		{
 			$page = add_submenu_page(
 				'options-general.php', 
-				__('TOC') . '+', 
-				__('TOC') . '+', 
+				__('TOC', 'toc+') . '+', 
+				__('TOC', 'toc+') . '+', 
 				'manage_options', 
 				'toc', 
 				array(&$this, 'admin_options')
@@ -240,8 +253,8 @@ if ( !class_exists( 'toc' ) ) :
 		 */
 		function admin_options_head()
 		{
-			wp_enqueue_style( 'farbtastic' );
-			wp_enqueue_script( 'farbtastic' );
+			//wp_enqueue_style( 'farbtastic' );
+			//wp_enqueue_script( 'farbtastic' );
 			wp_enqueue_script ( 'jquery' );
 			wp_enqueue_script( 'toc_admin_script' );
 			wp_enqueue_style( 'toc_admin_style' );
@@ -265,7 +278,9 @@ if ( !class_exists( 'toc' ) ) :
 				'auto_insert_post_types' => (array)$_POST['auto_insert_post_types'],
 				'show_heirarchy' => ($_POST['show_heirarchy']) ? true : false,
 				'ordered_list' => ($_POST['ordered_list']) ? true : false,
+				'smooth_scroll' => ($_POST['smooth_scroll']) ? true : false,
 				'wrapping' => intval($_POST['wrapping']),
+				'theme' => intval($_POST['theme']),
 				'sitemap_show_page_listing' => ($_POST['sitemap_show_page_listing']) ? true : false,
 				'sitemap_show_category_listing' => ($_POST['sitemap_show_category_listing']) ? true : false,
 				'sitemap_heading_type' => intval($_POST['sitemap_heading_type']),
@@ -286,9 +301,9 @@ if ( !class_exists( 'toc' ) ) :
 		
 			if ( isset( $_GET['update'] ) ) {
 				if ( $this->save_admin_options() )
-					$msg = "<div id='message' class='updated fade'><p>" . __('Options saved.') . "</p></div>";
+					$msg = '<div id="message" class="updated fade"><p>' . __('Options saved.', 'toc+') . '</p></div>';
 				else
-					$msg = "<div id='message' class='error fade'><p>" . __('Save failed.') . "</p></div>";
+					$msg = '<div id="message" class="error fade"><p>' . __('Save failed.', 'toc+') . '</p></div>';
 			}
 
 ?>
@@ -300,9 +315,9 @@ if ( !class_exists( 'toc' ) ) :
 <?php wp_nonce_field( plugin_basename(__FILE__), 'toc-admin-options' ); ?>
 
 <ul id="tabbed-nav">
-	<li><a href="#tab1">Main Options</a></li>
-	<li><a href="#tab2">Sitemap</a></li>
-	<li><a href="#tab3">Help</a></li>
+	<li><a href="#tab1"><?php _e('Main Options', 'toc+'); ?></a></li>
+	<li><a href="#tab2"><?php _e('Sitemap', 'toc+'); ?></a></li>
+	<li><a href="#tab3"><?php _e('Help', 'toc+'); ?></a></li>
 </ul>
 <div class="tab_container">
 	<div id="tab1" class="tab_content">
@@ -361,6 +376,10 @@ if ( !class_exists( 'toc' ) ) :
 	<td><input type="checkbox" value="1" id="ordered_list" name="ordered_list"<?php if ( $this->options['ordered_list'] ) echo ' checked="checked"'; ?> /></td>
 </tr>
 <tr>
+	<th><label for="smooth_scroll"><?php _e('Enable smooth scroll effect', 'toc+'); ?></label></th>
+	<td><input type="checkbox" value="1" id="smooth_scroll" name="smooth_scroll"<?php if ( $this->options['smooth_scroll'] ) echo ' checked="checked"'; ?> /><label for="smooth_scroll"> <?php _e( 'Scroll rather than jump to the anchor link', 'toc+'); ?></label></td>
+</tr>
+<tr>
 	<th><label for="wrapping"><?php _e('Wrapping', 'toc+'); ?></label></td>
 	<td>
 		<select name="wrapping" id="wrapping">
@@ -372,17 +391,51 @@ if ( !class_exists( 'toc' ) ) :
 </tr>
 </tbody>
 </table>
-<!--
+
 <h3>Appearance</h3>
-Background Colour
+<table class="form-table">
+<tbody>
+<tr>
+	<th><?php _e('Theme', 'toc+'); ?></th>
+	<td>
+		<div class="toc_theme_option">
+			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_GREY; ?>" value="<?php echo TOC_THEME_GREY; ?>"<?php if ( $this->options['theme'] == TOC_THEME_GREY ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_GREY; ?>"> Grey (default)<br />
+			<img src="<?php echo $this->path; ?>/images/grey.png" alt="" />
+			</label>
+		</div>
+		<div class="toc_theme_option">
+			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_LIGHT_BLUE; ?>" value="<?php echo TOC_THEME_LIGHT_BLUE; ?>"<?php if ( $this->options['theme'] == TOC_THEME_LIGHT_BLUE ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_LIGHT_BLUE; ?>"> Light blue<br />
+			<img src="<?php echo $this->path; ?>/images/blue.png" alt="" />
+			</label>
+		</div>
+		<div class="toc_theme_option">
+			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_WHITE; ?>" value="<?php echo TOC_THEME_WHITE; ?>"<?php if ( $this->options['theme'] == TOC_THEME_WHITE ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_WHITE; ?>"> White<br />
+			<img src="<?php echo $this->path; ?>/images/white.png" alt="" />
+			</label>
+		</div>
+		<div class="toc_theme_option">
+			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_BLACK; ?>" value="<?php echo TOC_THEME_BLACK; ?>"<?php if ( $this->options['theme'] == TOC_THEME_BLACK ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_BLACK; ?>"> Black<br />
+			<img src="<?php echo $this->path; ?>/images/black.png" alt="" />
+			</label>
+		</div>
+	</td>
+</tr>
+</tbody>
+</table>
+<!--Background Colour
 <input type="text" name="background_colour" id="background_colour" value="#00ffff" /><div id="background_colour_wheel"></div>
 -->
+
+<h3>Advanced usage <span class="show_hide">(<a href="#toc_advanced_usage">show</a>)</span></h3>
+<div id="toc_advanced_usage">
+	<p>If you would like to fully customise the position of the table of contents, you can use the <code>[toc]</code> shortcode by placing it at the desired position of your post, page or custom post type. This method allows you to generate the table of contents despite disabling auto insertion for its content type. Except for the position, it will inherit default options as defined on this page.</p>
+</div>
+
 
 	</div>
 	<div id="tab2" class="tab_content">
 	
 
-<h3 class="title"><?php _e('Sitemap', 'toc+'); ?></h3>
 <p><?php _e('At its simplest, placing', 'toc+'); ?> <code>[sitemap]</code> <?php _e('into a page will automatically create a sitemap of all pages and categories. This also works in a text widget.', 'toc+'); ?></p>
 <table class="form-table">
 <tbody>
@@ -445,10 +498,11 @@ Background Colour
 	<div id="tab3" class="tab_content">
 
 <h3>How do I stop the table of contents from appearing on a single page?</h3>
-<p>Place the following <code>[no_toc]</code> anywhere on the page to suppress the table of contents. This is known as a shortcode and works for posts and custom post types that make use of the_content().</p>
+<p>Place the following <code>[no_toc]</code> anywhere on the page to suppress the table of contents. This is known as a shortcode and works for posts, pages and custom post types that make use of the_content().</p>
 
 <h3>I've set wrapping to left or right but the headings don't wrap around the table of contents</h3>
-<p>This normally occurs when there is a CSS clear directive in or around the heading. This directive tells the user agent to reset the previous wrapping specifications. You can adjust your theme's CSS or try moving the table of contents position to the top of the page. If you didn't build your theme, I'd highly suggest you try the <a href="http://wordpress.org/extend/plugins/safecss/">Custom CSS plugin</a> if you wish to make CSS changes.</p>
+<p>This normally occurs when there is a CSS clear directive in or around the heading specified by the theme author. This directive tells the user agent to reset the previous wrapping specifications.</p>
+<p>You can adjust your theme's CSS or try moving the table of contents position to the top of the page. If you didn't build your theme, I'd highly suggest you try the <a href="http://wordpress.org/extend/plugins/safecss/">Custom CSS plugin</a> if you wish to make CSS changes.</p>
 
 <h3>What's with the version numbers?</h3>
 <p>I like Ubuntu, especially the server product and highly recommend it for Linux deployments. I also like their versioning scheme and have adopted it. All versions are in a YYMM format (year month) of when the release was made.</p>
@@ -470,6 +524,17 @@ Background Colour
 		function public_styles()
 		{
 			wp_enqueue_style("toc-screen");
+		}
+		
+		
+		/**
+		 * Load front end javascript only on front end pages.  Putting it into 'init' will
+		 * load it on both frontend and backend pages.
+		 */
+		function template_redirect()
+		{
+			if ( $this->options['smooth_scroll'] ) wp_enqueue_script( 'smooth-scroll' );
+			wp_enqueue_script( 'toc-front' );
 		}
 		
 		
@@ -538,10 +603,14 @@ Background Colour
 		function the_content( $content )
 		{
 			global $post;
-			$items = '';
+			$items = $css_classes = '';
+			$custom_toc_position = strpos($content, '<!--TOC-->');
 			$matches = $find = $replace = array();
 
-			if ( in_array(get_post_type($post), $this->options['auto_insert_post_types']) && !is_search() && $this->show_toc ) {
+			if ( 
+				( in_array(get_post_type($post), $this->options['auto_insert_post_types']) && $this->show_toc && !is_search() && !is_archive() ) || 
+				( $custom_toc_position !== false )
+			) {
 				// get all headings
 				// the html spec allows for a maximum of 6 heading depths
 				if ( preg_match_all('/(<h([2-6]{1})>).*<\/h\2>/', $content, $matches, PREG_SET_ORDER) >= $this->options['start'] ) {
@@ -570,39 +639,70 @@ Background Colour
 					// wrapping css classes
 					switch( $this->options['wrapping'] ) {
 						case TOC_WRAPPING_LEFT:
-							$wrapping = 'toc_wrap_left';
+							$css_classes .= ' toc_wrap_left';
 							break;
 							
 						case TOC_WRAPPING_RIGHT:
-							$wrapping = 'toc_wrap_right';
+							$css_classes .= ' toc_wrap_right';
 							break;
 
 						case TOC_WRAPPING_NONE:
 						default:
-							$wrapping = ' ';
+							// do nothing
 					}
+					
+					// colour themes
+					switch ( $this->options['theme'] ) {
+						case TOC_THEME_LIGHT_BLUE:
+							$css_classes .= ' toc_light_blue';
+							break;
+						
+						case TOC_THEME_WHITE:
+							$css_classes .= ' toc_white';
+							break;
+							
+						case TOC_THEME_BLACK:
+							$css_classes .= ' toc_black';
+							break;
+					
+						case TOC_THEME_GREY:
+						default:
+							// do nothing
+					}
+					
+					$css_classes = trim($css_classes);
+					
+					// an empty class="" is invalid markup!
+					if ( !$css_classes ) $css_classes = ' ';
 					
 					// add container, toc title and list items
 					$html = 
-						'<div id="toc_container" class="' . $wrapping . '">' .
+						'<div id="toc_container" class="' . $css_classes . '">' .
 							'<p class="toc_title">' . htmlentities($this->options['heading_text']) . '</p>' .
 							'<ul>' . $items . '</ul>' .
 						'</div>'
 					;
 					
-					switch ( $this->options['position'] ) {
-						case TOC_POSITION_TOP:
-							$content = $html . str_replace($find, $replace, $content);
-							break;
+					if ( $custom_toc_position !== false ) {
+						$find[] = '<!--TOC-->';
+						$replace[] = $html;
+						$content = str_replace($find, $replace, $content);
+					}
+					else {	
+						switch ( $this->options['position'] ) {
+							case TOC_POSITION_TOP:
+								$content = $html . str_replace($find, $replace, $content);
+								break;
+							
+							case TOC_POSITION_BOTTOM:
+								$content = str_replace($find, $replace, $content) . $html;
+								break;
 						
-						case TOC_POSITION_BOTTOM:
-							$content = str_replace($find, $replace, $content) . $html;
-							break;
-					
-						case TOC_POSITION_BEFORE_FIRST_HEADING:
-						default:
-							$replace[0] = $html . $replace[0];
-							$content = str_replace($find, $replace, $content);
+							case TOC_POSITION_BEFORE_FIRST_HEADING:
+							default:
+								$replace[0] = $html . $replace[0];
+								$content = str_replace($find, $replace, $content);
+						}
 					}
 				}
 			}

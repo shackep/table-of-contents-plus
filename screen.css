@@ -11,9 +11,21 @@
 	width: 278px;
 	font-size: 95%;
 }
+#toc_container.toc_light_blue {
+	background: #edf6ff;
+}
+#toc_container.toc_white {
+	background: #fff;
+}
+#toc_container.toc_black {
+	background: #000;
+}
 .toc_title {
 	text-align: center;
 	font-weight: bold;
+}
+#toc_container.toc_black .toc_title {
+	color: #aaa;
 }
 .toc_wrap_left {
 	float: left;

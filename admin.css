@@ -63,3 +63,8 @@ h3 span.show_hide {
 	font-size: 0.85em;
 	font-weight: normal;
 }
+div.toc_theme_option {
+	width: 200px;
+	float: left;
+	margin-right: 5px;
+}
