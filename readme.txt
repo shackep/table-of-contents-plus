@@ -3,7 +3,7 @@ Contributors: conjur3r
 Donate link: 
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.0
-Tested up to: 3.2
+Tested up to: 3.3
 Stable tag: 1107.1
 
 A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
@@ -11,13 +11,13 @@ A powerful yet user friendly plugin that automatically creates a table of conten
 
 == Description ==
 
-A powerful yet user friendly plugin that automatically creates a context specific index or table of contents index for long pages (and custom post types).  More than just a table of contents plugin, this plugin can also output a sitemap listing pages and/or categories.
-
-Includes an administration options panel where you can customise things like display position, define the minimum number of headings before an index is displayed, appearance, etc.  Using shortcodes, you can override default behaviour such as special exclusions on a specific page or even to hide the table of contents altogether.
-
-This plugin is a great companion for content rich sites such as content management system oriented configurations.  That said, bloggers have the same benefits when writing long structured articles.
+A powerful yet user friendly plugin that automatically creates a context specific index or table of contents for long pages (and custom post types).  More than just a table of contents plugin, this plugin can also output a sitemap listing pages and/or categories.
 
 Built from the ground up and with Wikipedia in mind, the table of contents by default appears before the first heading on a page.  This allows the author to insert lead-in content that may summarise or introduce the rest of the page.  It also uses a unique numbering scheme that doesn't get lost through CSS differences across themes.
+
+This plugin is a great companion for content rich sites such as content management system oriented configurations.  That said, bloggers also have the same benefits when writing long structured articles.
+
+Includes an administration options panel where you can customise settings like display position, define the minimum number of headings before an index is displayed, appearance, etc.  Using shortcodes, you can override default behaviour such as special exclusions on a specific page or even to hide the table of contents altogether.
 
 Custom post types are supported, however, auto insertion works only when the_content() has been used by the custom post type. Each post type will appear in the options panel, so enable the ones you want.
 
@@ -37,13 +37,19 @@ The normal plugin install process applies, that is search for `table of contents
 
 1. Upload the `table-of-contents-plus` folder into your `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Customise your options under Settings > TOC+ if needed
 
-Requires PHP 5.
+That's it!  The table of contents will appear on pages with at least four or more headings.
+
+You can change the default settings and more under Settings > TOC+
+
+This plugin requires PHP 5.
+
 
 == Shortcodes ==
 
-* `[toc]` lets you generate the table of contents at the preferred position.  Also useful for sites that only require a TOC on a small handful of pages.
+* `[toc]` lets you generate the table of contents at the preferred position.  Useful for sites that only require a TOC on a small handful of pages.  Supports the following parameters:
+** "label": text, title of the table of contents
+** "no_label": true/false, shows or hides the title
 * `[no_toc]` allows you to disable the table of contents for the current post, page, or custom post type.
 * `[sitemap]` produces a listing of all pages and categories for your site. You can use this on any post, page or even in a text widget.
 * `[sitemap_pages]` lets you print out a listing of only pages. The following parameters are accepted:
@@ -57,6 +63,14 @@ When parameters are left out, they will fallback to the default settings.
 
 == Changelog ==
 
+= trunk =
+* New: option to hide the title on top of the table of contents.  Thanks to [http://dublue.com/plugins/toc/#comment-82](Andrew) for the suggestion.
+* Fixed: typo 'heirarchy' should be 'hierarchy'.  Also thanks to Andrew.
+* Fixed: addressed an issue while saving on networked installs using sub directories.  Thanks to [http://dublue.com/plugins/toc/#comment-79](Aubrey).
+* Allow 3 to be set as the minimum number of headings for auto insertion.  The default stays at 4.
+* Now accepts heading 1s (h1) within the body of a post, page or custom post type.
+* Adjusted CSS styles for lists to be a little more consistent across themes (eg list-style, margins & paddings).
+
 = 1107.1 (10/July/2011) =
 * New: added `[toc]` shortcode to generate the table of contents at the preferred position.  Also useful for sites that only require a TOC on a small handful of pages.
 * New: smooth scroll effect added to animate to anchor rather than jump.  It's off by default.
@@ -68,7 +82,7 @@ When parameters are left out, they will fallback to the default settings.
 
 == Frequently Asked Questions ==
 
-None yet.
+Check out the FAQs / Scenarios at [http://dublue.com/plugins/toc/](http://dublue.com/plugins/toc/)
 
 
 == Upgrade Notice ==

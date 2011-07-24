@@ -42,7 +42,7 @@ define( 'TOC_ANCHOR_PREFIX', 'toc_index_' );
 define( 'TOC_POSITION_BEFORE_FIRST_HEADING', 1 );
 define( 'TOC_POSITION_TOP', 2 );
 define( 'TOC_POSITION_BOTTOM', 3 );
-define( 'TOC_MIN_START', 4 );
+define( 'TOC_MIN_START', 3 );
 define( 'TOC_MAX_START', 10 );
 define( 'TOC_WRAPPING_NONE', 0 );
 define( 'TOC_WRAPPING_LEFT', 1 );
@@ -72,6 +72,7 @@ if ( !class_exists( 'toc' ) ) :
 			$defaults = array(		// default options
 				'position' => TOC_POSITION_BEFORE_FIRST_HEADING,
 				'start' => TOC_MIN_START,
+				'show_heading_text' => true,
 				'heading_text' => 'Contents',
 				'auto_insert_post_types' => array('page'),
 				'show_heirarchy' => true,
@@ -123,6 +124,15 @@ if ( !class_exists( 'toc' ) ) :
 		
 		function shortcode_toc( $atts )
 		{
+			extract( shortcode_atts( array(
+				'label' => $this->options['heading_text'],
+				'no_label' => false
+				), $atts )
+			);
+			
+			if ( $no_label ) $this->options['show_heading_text'] = false;
+			if ( $label ) $this->options['heading_text'] = html_entity_decode( $label );
+		
 			if ( !is_search() && !is_archive() )
 				return '<!--TOC-->';
 			else
@@ -274,6 +284,7 @@ if ( !class_exists( 'toc' ) ) :
 			$this->options = array(
 				'position' => intval($_POST['position']),
 				'start' => intval($_POST['start']),
+				'show_heading_text' => ($_POST['show_heading_text']) ? true : false,
 				'heading_text' => trim($_POST['heading_text']),
 				'auto_insert_post_types' => (array)$_POST['auto_insert_post_types'],
 				'show_heirarchy' => ($_POST['show_heirarchy']) ? true : false,
@@ -311,7 +322,7 @@ if ( !class_exists( 'toc' ) ) :
 <div id="icon-options-general" class="icon32"><br /></div>
 <h2><?php _e('Table of Contents', 'toc+'); ?>+</h2>
 <?php echo $msg; ?>
-<form method="post" action="<?php echo $_SERVER['PHP_SELF'] . '?page=' . htmlentities($_GET['page'] . '&update'); ?>">
+<form method="post" action="<?php echo htmlentities('?page=' . $_GET['page'] . '&update'); ?>">
 <?php wp_nonce_field( plugin_basename(__FILE__), 'toc-admin-options' ); ?>
 
 <ul id="tabbed-nav">
@@ -349,13 +360,17 @@ if ( !class_exists( 'toc' ) ) :
 	</td>
 </tr>
 <tr>
-	<th><label for="heading_text"><?php _e('Heading text', 'toc+'); ?></label></th>
-	<td><input type="text" class="regular-text" value="<?php echo htmlentities($this->options['heading_text']); ?>" id="heading_text" name="heading_text" />
-		<span class="description"><?php _e('Eg: Contents, Table of Contents, Page Contents', 'toc+'); ?></span>
+	<th><label for="show_heading_text"><?php _e('Heading text', 'toc+'); ?></label></th>
+	<td>
+		<input type="checkbox" value="1" id="show_heading_text" name="show_heading_text"<?php if ( $this->options['show_heading_text'] ) echo ' checked="checked"'; ?> /><label for="show_heading_text"> <?php _e('Show title on top of the table of contents', 'toc+'); ?></label><br />
+		<div class="more_toc_options<?php if ( !$this->options['show_heading_text'] ) echo ' disabled'; ?>">
+			<input type="text" class="regular-text" value="<?php echo htmlentities($this->options['heading_text']); ?>" id="heading_text" name="heading_text" />
+			<span class="description"><label for="heading_text"><?php _e('Eg: Contents, Table of Contents, Page Contents', 'toc+'); ?></label></span>
+		</div>
 	</td>
 </tr>
 <tr>
-	<th><?php _e('Auto insert for the following post types', 'toc+'); ?></th>
+	<th><?php _e('Auto insert for the following content types', 'toc+'); ?></th>
 	<td><?php
 			foreach (get_post_types() as $post_type) {
 				// make sure the post type isn't on the exclusion list
@@ -368,7 +383,7 @@ if ( !class_exists( 'toc' ) ) :
 ?>
 </tr>
 <tr>
-	<th><label for="show_heirarchy"><?php _e('Show heirarchy', 'toc+'); ?></label></th>
+	<th><label for="show_heirarchy"><?php _e('Show hierarchy', 'toc+'); ?></label></th>
 	<td><input type="checkbox" value="1" id="show_heirarchy" name="show_heirarchy"<?php if ( $this->options['show_heirarchy'] ) echo ' checked="checked"'; ?> /></td>
 </tr>
 <tr>
@@ -379,22 +394,22 @@ if ( !class_exists( 'toc' ) ) :
 	<th><label for="smooth_scroll"><?php _e('Enable smooth scroll effect', 'toc+'); ?></label></th>
 	<td><input type="checkbox" value="1" id="smooth_scroll" name="smooth_scroll"<?php if ( $this->options['smooth_scroll'] ) echo ' checked="checked"'; ?> /><label for="smooth_scroll"> <?php _e( 'Scroll rather than jump to the anchor link', 'toc+'); ?></label></td>
 </tr>
+</tbody>
+</table>
+
+<h3><?php _e('Appearance', 'toc+'); ?></h3>
+<table class="form-table">
+<tbody>
 <tr>
 	<th><label for="wrapping"><?php _e('Wrapping', 'toc+'); ?></label></td>
 	<td>
 		<select name="wrapping" id="wrapping">
-			<option value="<?php echo TOC_WRAPPING_NONE; ?>"<?php if ( TOC_WRAPPING_NONE == $this->options['wrapping'] ) echo ' selected="selected"'; ?>>None (default)</option>
-			<option value="<?php echo TOC_WRAPPING_LEFT; ?>"<?php if ( TOC_WRAPPING_LEFT == $this->options['wrapping'] ) echo ' selected="selected"'; ?>>Left</option>
-			<option value="<?php echo TOC_WRAPPING_RIGHT; ?>"<?php if ( TOC_WRAPPING_RIGHT == $this->options['wrapping'] ) echo ' selected="selected"'; ?>>Right</option>
+			<option value="<?php echo TOC_WRAPPING_NONE; ?>"<?php if ( TOC_WRAPPING_NONE == $this->options['wrapping'] ) echo ' selected="selected"'; ?>><?php _e('None (default)'); ?></option>
+			<option value="<?php echo TOC_WRAPPING_LEFT; ?>"<?php if ( TOC_WRAPPING_LEFT == $this->options['wrapping'] ) echo ' selected="selected"'; ?>><?php _e('Left', 'toc+'); ?></option>
+			<option value="<?php echo TOC_WRAPPING_RIGHT; ?>"<?php if ( TOC_WRAPPING_RIGHT == $this->options['wrapping'] ) echo ' selected="selected"'; ?>><?php _e('Right', 'toc+'); ?></option>
 		</select>
 	</td>
 </tr>
-</tbody>
-</table>
-
-<h3>Appearance</h3>
-<table class="form-table">
-<tbody>
 <tr>
 	<th><?php _e('Theme', 'toc+'); ?></th>
 	<td>
@@ -428,7 +443,11 @@ if ( !class_exists( 'toc' ) ) :
 
 <h3>Advanced usage <span class="show_hide">(<a href="#toc_advanced_usage">show</a>)</span></h3>
 <div id="toc_advanced_usage">
-	<p>If you would like to fully customise the position of the table of contents, you can use the <code>[toc]</code> shortcode by placing it at the desired position of your post, page or custom post type. This method allows you to generate the table of contents despite disabling auto insertion for its content type. Except for the position, it will inherit default options as defined on this page.</p>
+	<p>If you would like to fully customise the position of the table of contents, you can use the <code>[toc]</code> shortcode by placing it at the desired position of your post, page or custom post type. This method allows you to generate the table of contents despite having auto insertion disabled for its content type. Supports the following parameters:</p>
+	<ul>
+		<li><strong>label</strong> text, title of the table of contents</li>
+		<li><strong>no_label</strong> true/false, shows or hides the title</li>
+	</ul>
 </div>
 
 
@@ -497,6 +516,14 @@ if ( !class_exists( 'toc' ) ) :
 	</div>
 	<div id="tab3" class="tab_content">
 
+<h3>Where's my table of contents?</h3>
+<p>If you're reading this, then chances are you have successfully installed and enabled the plugin and you're just wondering why the index isn't appearing right?  Try the following:</p>
+<ol>
+	<li>In most cases, the post, page or custom post type has less than the minimum number of headings. By default, this is set to four so make sure you have at least four headings within your content. If you want to change this value, you can find it under 'Main Options' &gt; 'Show when'.</li>
+	<li>Is auto insertion enabled for your content type? By default, only pages are enabled.</li>
+	<li>Have you got <code>[no_toc]</code> somewhere within the content? This will disable the index for the current post, page or custom post type.</li>
+</ol>
+	
 <h3>How do I stop the table of contents from appearing on a single page?</h3>
 <p>Place the following <code>[no_toc]</code> anywhere on the page to suppress the table of contents. This is known as a shortcode and works for posts, pages and custom post types that make use of the_content().</p>
 
@@ -538,7 +565,7 @@ if ( !class_exists( 'toc' ) ) :
 		}
 		
 		
-		private function build_heirarchy( &$matches )
+		private function build_hierarchy( &$matches )
 		{
 			$current_depth = 100;	// headings can't be larger than h6 but 100 as a default to be sure
 			$html = '';
@@ -569,7 +596,7 @@ if ( !class_exists( 'toc' ) ) :
 				// list item
 				$html .= '<a href="#' . TOC_ANCHOR_PREFIX . ($i + 1) . '">';
 				if ( $this->options['ordered_list'] ) {
-					// attach leading numbers when lower in heirarchy
+					// attach leading numbers when lower in hierarchy
 					for ($j = $numbered_items_min; $j < $current_depth; $j++) {
 						$number = ($numbered_items[$j]) ? $numbered_items[$j] : 0;
 						$html .= $number . '.';
@@ -613,7 +640,7 @@ if ( !class_exists( 'toc' ) ) :
 			) {
 				// get all headings
 				// the html spec allows for a maximum of 6 heading depths
-				if ( preg_match_all('/(<h([2-6]{1})>).*<\/h\2>/', $content, $matches, PREG_SET_ORDER) >= $this->options['start'] ) {
+				if ( preg_match_all('/(<h([1-6]{1})>).*<\/h\2>/', $content, $matches, PREG_SET_ORDER) >= $this->options['start'] ) {
 					for ($i = 0; $i < count($matches); $i++) {
 						
 						// create find and replace arrays
@@ -632,9 +659,9 @@ if ( !class_exists( 'toc' ) ) :
 						}
 					}
 			
-					// build a heirarchical toc?
+					// build a hierarchical toc?
 					// we could have tested for $items but that var can be quite large in some cases
-					if ( $this->options['show_heirarchy'] ) $items = $this->build_heirarchy( &$matches );
+					if ( $this->options['show_heirarchy'] ) $items = $this->build_hierarchy( &$matches );
 					
 					// wrapping css classes
 					switch( $this->options['wrapping'] ) {
@@ -676,12 +703,9 @@ if ( !class_exists( 'toc' ) ) :
 					if ( !$css_classes ) $css_classes = ' ';
 					
 					// add container, toc title and list items
-					$html = 
-						'<div id="toc_container" class="' . $css_classes . '">' .
-							'<p class="toc_title">' . htmlentities($this->options['heading_text']) . '</p>' .
-							'<ul>' . $items . '</ul>' .
-						'</div>'
-					;
+					$html = '<div id="toc_container" class="' . $css_classes . '">';
+					if ( $this->options['show_heading_text'] ) $html .= '<p class="toc_title">' . htmlentities($this->options['heading_text']) . '</p>';
+					$html .= '<ul>' . $items . '</ul></div>';
 					
 					if ( $custom_toc_position !== false ) {
 						$find[] = '<!--TOC-->';

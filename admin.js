@@ -1,5 +1,5 @@
 jQuery(document).ready(function($) {
-	$('.tab_content, #toc_advanced_usage, #sitemap_advanced_usage').hide();
+	$('.tab_content, #toc_advanced_usage, #sitemap_advanced_usage, div.more_toc_options.disabled').hide();
 	$('ul#tabbed-nav li:first').addClass('active').show(); // show first tab
 	$('.tab_content:first').show(); // show first tab content
 
@@ -20,6 +20,10 @@ jQuery(document).ready(function($) {
 			$(this).text('hide');
 		else
 			$(this).text('show');
+	});
+	
+	$('input#show_heading_text').click(function() {
+		$(this).siblings('div.more_toc_options').toggle('fast');
 	});
 	
 	if ( $.farbtastic ) {
