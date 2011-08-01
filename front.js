@@ -15,8 +15,10 @@ jQuery(document).ready(function($) {
 			}
 
 			if ( (window.location.hostname == hostname) && (hash !== '') ) {
+				// escape jquery selector chars, but keep the #
+				var hash_selector = hash.replace(/([ !"$%&'()*+,.\/:;<=>?@[\]^`{|}~])/g, '\\$1');
 				// check if element exists with id=__
-				if ( $( hash ).length > 0 )
+				if ( $( hash_selector ).length > 0 )
 					target = hash;
 				else {
 					// must be an anchor (a name=__)

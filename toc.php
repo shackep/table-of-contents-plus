@@ -5,7 +5,7 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1107.1
+Version: 		1108
 License:		GPL2
 */
 
@@ -27,18 +27,15 @@ License:		GPL2
 
 /**
 FOR CONSIDERATION:
-- support headings already with an id
 - back to top links
 - sitemap
 	- exclude pages/categories
 	- support other taxonomies
 - advanced options
-	- width
 	- highlight target css
 */
 
  
-define( 'TOC_ANCHOR_PREFIX', 'toc_index_' );
 define( 'TOC_POSITION_BEFORE_FIRST_HEADING', 1 );
 define( 'TOC_POSITION_TOP', 2 );
 define( 'TOC_POSITION_BOTTOM', 3 );
@@ -78,8 +75,12 @@ if ( !class_exists( 'toc' ) ) :
 				'show_heirarchy' => true,
 				'ordered_list' => true,
 				'smooth_scroll' => false,
+				'width' => '275px',
+				'width_custom' => '275',
+				'width_custom_units' => 'px',
 				'wrapping' => TOC_WRAPPING_NONE,
 				'theme' => TOC_THEME_GREY,
+				'bullet_spacing' => false,
 				'sitemap_show_page_listing' => true,
 				'sitemap_show_category_listing' => true,
 				'sitemap_heading_type' => 3,
@@ -290,8 +291,12 @@ if ( !class_exists( 'toc' ) ) :
 				'show_heirarchy' => ($_POST['show_heirarchy']) ? true : false,
 				'ordered_list' => ($_POST['ordered_list']) ? true : false,
 				'smooth_scroll' => ($_POST['smooth_scroll']) ? true : false,
+				'width' => trim($_POST['width']),
+				'width_custom' => intval($_POST['width_custom']),
+				'width_custom_units' => trim($_POST['width_custom_units']),
 				'wrapping' => intval($_POST['wrapping']),
 				'theme' => intval($_POST['theme']),
+				'bullet_spacing' => ($_POST['bullet_spacing']) ? true : false,
 				'sitemap_show_page_listing' => ($_POST['sitemap_show_page_listing']) ? true : false,
 				'sitemap_show_category_listing' => ($_POST['sitemap_show_category_listing']) ? true : false,
 				'sitemap_heading_type' => intval($_POST['sitemap_heading_type']),
@@ -401,17 +406,55 @@ if ( !class_exists( 'toc' ) ) :
 <table class="form-table">
 <tbody>
 <tr>
+	<th><label for="width"><?php _e('Width', 'toc+'); ?></label></td>
+	<td>
+		<select name="width" id="width">
+			<optgroup label="<?php _e('Fixed width', 'toc+'); ?>">
+				<option value="200px"<?php if ( '200px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('200px'); ?></option>
+				<option value="225px"<?php if ( '225px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('225px'); ?></option>
+				<option value="250px"<?php if ( '250px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('250px'); ?></option>
+				<option value="275px"<?php if ( '275px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('275px (default)'); ?></option>
+				<option value="300px"<?php if ( '300px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('300px'); ?></option>
+				<option value="325px"<?php if ( '325px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('325px'); ?></option>
+				<option value="350px"<?php if ( '350px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('350px'); ?></option>
+				<option value="375px"<?php if ( '375px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('375px'); ?></option>
+				<option value="400px"<?php if ( '400px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('400px'); ?></option>
+			</optgroup>
+			<optgroup label="<?php _e('Relative', 'toc+'); ?>">
+				<option value="25%"<?php if ( '25%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('25%'); ?></option>
+				<option value="33%"<?php if ( '33%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('33%'); ?></option>
+				<option value="50%"<?php if ( '50%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('50%'); ?></option>
+				<option value="66%"<?php if ( '66%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('66%'); ?></option>
+				<option value="75%"<?php if ( '75%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('75%'); ?></option>
+				<option value="100%"<?php if ( '100%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('100%'); ?></option>
+			</optgroup>
+			<optgroup label="<?php _e('Other', 'toc+'); ?>">
+				<option value="User defined"<?php if ( 'User defined' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('User defined', 'toc+'); ?></option>
+			</optgroup>
+		</select>
+		<div class="more_toc_options<?php if ( 'User defined' != $this->options['width'] ) echo ' disabled'; ?>">
+			<label for="width_custom"><?php _e('Please enter a number and', 'toc+'); ?></label><label for="width_custom_units"> <?php _e('select its units, eg: 100px, 10em', 'toc+'); ?></label><br />
+			<input type="text" class="regular-text" value="<?php echo htmlentities($this->options['width_custom']); ?>" id="width_custom" name="width_custom" />
+			<select name="width_custom_units" id="width_custom_units">
+				<option value="px"<?php if ( 'px' == $this->options['width_custom_units'] ) echo ' selected="selected"'; ?>>px</option>
+				<option value="%"<?php if ( '%' == $this->options['width_custom_units'] ) echo ' selected="selected"'; ?>>%</option>
+				<option value="em"<?php if ( 'em' == $this->options['width_custom_units'] ) echo ' selected="selected"'; ?>>em</option>
+			</select>
+		</div>
+	</td>
+</tr>
+<tr>
 	<th><label for="wrapping"><?php _e('Wrapping', 'toc+'); ?></label></td>
 	<td>
 		<select name="wrapping" id="wrapping">
-			<option value="<?php echo TOC_WRAPPING_NONE; ?>"<?php if ( TOC_WRAPPING_NONE == $this->options['wrapping'] ) echo ' selected="selected"'; ?>><?php _e('None (default)'); ?></option>
+			<option value="<?php echo TOC_WRAPPING_NONE; ?>"<?php if ( TOC_WRAPPING_NONE == $this->options['wrapping'] ) echo ' selected="selected"'; ?>><?php _e('None (default)', 'toc+'); ?></option>
 			<option value="<?php echo TOC_WRAPPING_LEFT; ?>"<?php if ( TOC_WRAPPING_LEFT == $this->options['wrapping'] ) echo ' selected="selected"'; ?>><?php _e('Left', 'toc+'); ?></option>
 			<option value="<?php echo TOC_WRAPPING_RIGHT; ?>"<?php if ( TOC_WRAPPING_RIGHT == $this->options['wrapping'] ) echo ' selected="selected"'; ?>><?php _e('Right', 'toc+'); ?></option>
 		</select>
 	</td>
 </tr>
 <tr>
-	<th><?php _e('Theme', 'toc+'); ?></th>
+	<th><?php _e('Presentation', 'toc+'); ?></th>
 	<td>
 		<div class="toc_theme_option">
 			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_GREY; ?>" value="<?php echo TOC_THEME_GREY; ?>"<?php if ( $this->options['theme'] == TOC_THEME_GREY ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_GREY; ?>"> Grey (default)<br />
@@ -434,6 +477,10 @@ if ( !class_exists( 'toc' ) ) :
 			</label>
 		</div>
 	</td>
+</tr>
+<tr>
+	<th><label for="bullet_spacing"><?php _e('Preserve theme bullets', 'toc+'); ?></label></th>
+	<td><input type="checkbox" value="1" id="bullet_spacing" name="bullet_spacing"<?php if ( $this->options['bullet_spacing'] ) echo ' checked="checked"'; ?> /><label for="bullet_spacing"> <?php _e( 'If your theme includes background images for unordered list elements, enable this to support them', 'toc+'); ?></label></td>
 </tr>
 </tbody>
 </table>
@@ -565,6 +612,34 @@ if ( !class_exists( 'toc' ) ) :
 		}
 		
 		
+		/**
+		 * Returns a clean url to be used as the destination anchor target
+		 */
+		private function url_anchor_target( $title )
+		{
+			$return = false;
+			
+			if ( $title ) {
+				$return = trim( strip_tags($title) );
+				
+				// remove &amp;
+				$return = str_replace('&amp;', '', $return);
+				
+				// remove punctuation
+				$return = preg_replace('/[!"$%&\'()*+,.\/:;<=>?@[\]^`{|}~]/', '', $return);
+				
+				// convert spaces to _
+				$return = str_replace(
+					array('  ', ' '),
+					'_',
+					$return
+				);
+			}
+			
+			return $return;
+		}
+		
+		
 		private function build_hierarchy( &$matches )
 		{
 			$current_depth = 100;	// headings can't be larger than h6 but 100 as a default to be sure
@@ -594,7 +669,7 @@ if ( !class_exists( 'toc' ) ) :
 				}
 				
 				// list item
-				$html .= '<a href="#' . TOC_ANCHOR_PREFIX . ($i + 1) . '">';
+				$html .= '<a href="#' . $this->url_anchor_target( $matches[$i][0] . '-' . ($i + 1) ) . '">';
 				if ( $this->options['ordered_list'] ) {
 					// attach leading numbers when lower in hierarchy
 					for ($j = $numbered_items_min; $j < $current_depth; $j++) {
@@ -602,8 +677,8 @@ if ( !class_exists( 'toc' ) ) :
 						$html .= $number . '.';
 					}
 					
-					$html .= ($numbered_items[$current_depth] + 1) . ' ';
-					$numbered_items[$current_depth]++;
+					$html .= (@$numbered_items[$current_depth] + 1) . ' ';
+					@$numbered_items[$current_depth]++;
 				}
 				$html .= strip_tags($matches[$i][0]) . '</a>';
 				
@@ -616,13 +691,19 @@ if ( !class_exists( 'toc' ) ) :
 							$numbered_items[$current_depth] = 0;
 						}
 					}
+					
+					if ( $current_depth == (int)@$matches[$i + 1][2] )
+						$html .= '</li>';
 				}
-			
-				if ( $current_depth == (int)$matches[$i + 1][2] )
-					$html .= '</li>';
-
+				else {
+					// this is the last item, make sure we close off all tags
+					for ($current_depth; $current_depth >= $numbered_items_min; $current_depth--) {
+						$html .= '</li>';
+						if ( $current_depth != $numbered_items_min ) $html .= '</ul>';
+					}
+				}
 			}
-			
+
 			return $html;
 		}
 		
@@ -640,20 +721,26 @@ if ( !class_exists( 'toc' ) ) :
 			) {
 				// get all headings
 				// the html spec allows for a maximum of 6 heading depths
-				if ( preg_match_all('/(<h([1-6]{1})>).*<\/h\2>/', $content, $matches, PREG_SET_ORDER) >= $this->options['start'] ) {
+				if ( preg_match_all('/(<h([1-6]{1})[^>]*>).*<\/h\2>/', $content, $matches, PREG_SET_ORDER) >= $this->options['start'] ) {
 					for ($i = 0; $i < count($matches); $i++) {
-						
+
 						// create find and replace arrays
 						$find[] = $matches[$i][0];
 						$replace[] = str_replace(
-							$matches[$i][1], 
-							trim($matches[$i][1], '>') . ' id="' . TOC_ANCHOR_PREFIX . ($i + 1) . '">',
+							array(
+								$matches[$i][1],				// start of heading
+								'</h' . $matches[$i][2] . '>'	// end of heading
+							),
+							array(
+								$matches[$i][1] . '<span id="' . $this->url_anchor_target( $matches[$i][0] . '-' . ($i + 1) ) . '">',
+								'</span></h' . $matches[$i][2] . '>'
+							),
 							$matches[$i][0]
 						);
-						
+
 						// assemble flat list
 						if ( !$this->options['show_heirarchy'] ) {
-							$items .= '<li><a href="#' . TOC_ANCHOR_PREFIX . ($i + 1) . '">';
+							$items .= '<li><a href="#' . $this->url_anchor_target( $matches[$i][0] . '-' . ($i + 1) ) . '">';
 							if ( $this->options['ordered_list'] ) $items .= ($i + 1) . ' ';
 							$items .= strip_tags($matches[$i][0]) . '</a></li>';
 						}
@@ -697,15 +784,30 @@ if ( !class_exists( 'toc' ) ) :
 							// do nothing
 					}
 					
+					// bullets?
+					if ( $this->options['bullet_spacing'] )
+						$css_classes .= ' have_bullets';
+					else
+						$css_classes .= ' no_bullets';
+					
 					$css_classes = trim($css_classes);
 					
 					// an empty class="" is invalid markup!
 					if ( !$css_classes ) $css_classes = ' ';
 					
 					// add container, toc title and list items
-					$html = '<div id="toc_container" class="' . $css_classes . '">';
+					$html = '<div id="toc_container" class="' . $css_classes . '"';
+					if ( $this->options['width'] != '275px' ) {
+						$html .= ' style="width: ';
+						if ( $this->options['width'] != 'User defined' )
+							$html .= $this->options['width'];
+						else
+							$html .= $this->options['width_custom'] . $this->options['width_custom_units'];
+						$html .= ';"';
+					}
+					$html .= '>';
 					if ( $this->options['show_heading_text'] ) $html .= '<p class="toc_title">' . htmlentities($this->options['heading_text']) . '</p>';
-					$html .= '<ul>' . $items . '</ul></div>';
+					$html .= '<ul>' . $items . '</ul></div>' . "\n";
 					
 					if ( $custom_toc_position !== false ) {
 						$find[] = '<!--TOC-->';

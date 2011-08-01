@@ -4,7 +4,7 @@ Donate link:
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.0
 Tested up to: 3.3
-Stable tag: 1107.1
+Stable tag: 1108
 
 A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 
@@ -63,20 +63,25 @@ When parameters are left out, they will fallback to the default settings.
 
 == Changelog ==
 
-= trunk =
+= 1108 - 1 August 2011 =
 * New: option to hide the title on top of the table of contents.  Thanks to [http://dublue.com/plugins/toc/#comment-82](Andrew) for the suggestion.
-* Fixed: typo 'heirarchy' should be 'hierarchy'.  Also thanks to Andrew.
-* Fixed: addressed an issue while saving on networked installs using sub directories.  Thanks to [http://dublue.com/plugins/toc/#comment-79](Aubrey).
+* New: option to preserve existing theme specified bullet images for unordered list elements.
+* New: option to set the width of the table of contents.  You can select from a number of common widths, or define your own.
 * Allow 3 to be set as the minimum number of headings for auto insertion.  The default stays at 4.
 * Now accepts heading 1s (h1) within the body of a post, page or custom post type.
+* Now creates new span tags for the target rather than the id of the heading.
+* Now uses the heading as the anchor target rather than toc_index.
 * Adjusted CSS styles for lists to be a little more consistent across themes (eg list-style, margins & paddings).
+* Fixed: typo 'heirarchy' should be 'hierarchy'.  Also thanks to Andrew.
+* Fixed: addressed an issue while saving on networked installs using sub directories.  Thanks to [http://dublue.com/plugins/toc/#comment-79](Aubrey).
+* Fixed: closing of the last list item when deeply nested.
 
-= 1107.1 (10/July/2011) =
+= 1107.1 - 10 July 2011 =
 * New: added `[toc]` shortcode to generate the table of contents at the preferred position.  Also useful for sites that only require a TOC on a small handful of pages.
 * New: smooth scroll effect added to animate to anchor rather than jump.  It's off by default.
 * New: appearance options to match your theme a little bit more.
 
-= 1107 (1/July/2011) =
+= 1107 - 1 July 2011 =
 * First world release (functional & feature packed)
 
 

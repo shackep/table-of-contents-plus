@@ -26,6 +26,21 @@ jQuery(document).ready(function($) {
 		$(this).siblings('div.more_toc_options').toggle('fast');
 	});
 	
+	/* width drop down */
+	$('select#width').change(function() {
+		if ( $(this).find('option:selected').val() == 'User defined' ) {
+			$(this).siblings('div.more_toc_options').show('fast');
+			$('input#width_custom').focus();
+		}
+		else
+			$(this).siblings('div.more_toc_options').hide('fast');
+	});
+	$('input#width_custom').keyup(function() {
+		var width = $(this).val();
+		width = width.replace(/[^0-9]/, '');
+		$('input#width_custom').val(width);
+	});
+	
 	if ( $.farbtastic ) {
 		$('#background_colour_wheel').hide();
 		$('#background_colour_wheel').farbtastic('#background_colour');
