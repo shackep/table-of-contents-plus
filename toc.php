@@ -5,7 +5,7 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1108
+Version: 		1108.1
 License:		GPL2
 */
 
@@ -158,14 +158,14 @@ if ( !class_exists( 'toc' ) ) :
 				$html = '<div class="toc_sitemap">';
 				if ( $this->options['sitemap_show_page_listing'] )
 					$html .=
-						'<h' . $this->options['sitemap_heading_type'] . ' class="toc_sitemap_pages">' . $this->options['sitemap_pages'] . '</h' . $this->options['sitemap_heading_type'] . '>' .
+						'<h' . $this->options['sitemap_heading_type'] . ' class="toc_sitemap_pages">' . htmlentities( $this->options['sitemap_pages'], ENT_COMPAT, 'UTF-8' ) . '</h' . $this->options['sitemap_heading_type'] . '>' .
 						'<ul class="toc_sitemap_pages_list">' .
 							wp_list_pages( array('title_li' => '', 'echo' => false ) ) .
 						'</ul>'
 					;
 				if ( $this->options['sitemap_show_category_listing'] )
 					$html .=
-						'<h' . $this->options['sitemap_heading_type'] . ' class="toc_sitemap_categories">' . $this->options['sitemap_categories'] . '</h' . $this->options['sitemap_heading_type'] . '>' .
+						'<h' . $this->options['sitemap_heading_type'] . ' class="toc_sitemap_categories">' . htmlentities( $this->options['sitemap_categories'], ENT_COMPAT, 'UTF-8' ) . '</h' . $this->options['sitemap_heading_type'] . '>' .
 						'<ul class="toc_sitemap_categories_list">' .
 							wp_list_categories( array( 'title_li' => '', 'echo' => false ) ) .
 						'</ul>'
@@ -181,7 +181,7 @@ if ( !class_exists( 'toc' ) ) :
 		{
 			extract( shortcode_atts( array(
 				'heading' => $this->options['sitemap_heading_type'],
-				'label' => $this->options['sitemap_pages'],
+				'label' => htmlentities( $this->options['sitemap_pages'], ENT_COMPAT, 'UTF-8' ),
 				'no_label' => false,
 				'exclude' => ''
 				), $atts )
@@ -207,7 +207,7 @@ if ( !class_exists( 'toc' ) ) :
 		{
 			extract( shortcode_atts( array(
 				'heading' => $this->options['sitemap_heading_type'],
-				'label' => $this->options['sitemap_pages'],
+				'label' => htmlentities( $this->options['sitemap_pages'], ENT_COMPAT, 'UTF-8' ),
 				'no_label' => false,
 				'exclude' => ''
 				), $atts )
@@ -281,12 +281,16 @@ if ( !class_exists( 'toc' ) ) :
 			// require an administrator level to save
 			if ( !current_user_can( 'manage_options', $post_id ) )
 				return false;
+			
+			// use stripslashes on free text fields that can have ' " \
+			// WordPress automatically slashes these characters as part of 
+			// wp-includes/load.php::wp_magic_quotes()
 
 			$this->options = array(
 				'position' => intval($_POST['position']),
 				'start' => intval($_POST['start']),
 				'show_heading_text' => ($_POST['show_heading_text']) ? true : false,
-				'heading_text' => trim($_POST['heading_text']),
+				'heading_text' => stripslashes( trim($_POST['heading_text']) ),
 				'auto_insert_post_types' => (array)$_POST['auto_insert_post_types'],
 				'show_heirarchy' => ($_POST['show_heirarchy']) ? true : false,
 				'ordered_list' => ($_POST['ordered_list']) ? true : false,
@@ -300,8 +304,8 @@ if ( !class_exists( 'toc' ) ) :
 				'sitemap_show_page_listing' => ($_POST['sitemap_show_page_listing']) ? true : false,
 				'sitemap_show_category_listing' => ($_POST['sitemap_show_category_listing']) ? true : false,
 				'sitemap_heading_type' => intval($_POST['sitemap_heading_type']),
-				'sitemap_pages' => trim($_POST['sitemap_pages']),
-				'sitemap_categories' => trim($_POST['sitemap_categories'])
+				'sitemap_pages' => stripslashes( trim($_POST['sitemap_pages']) ),
+				'sitemap_categories' => stripslashes( trim($_POST['sitemap_categories']) )
 			);
 			
 			// update_option will return false if no changes were made
@@ -369,7 +373,7 @@ if ( !class_exists( 'toc' ) ) :
 	<td>
 		<input type="checkbox" value="1" id="show_heading_text" name="show_heading_text"<?php if ( $this->options['show_heading_text'] ) echo ' checked="checked"'; ?> /><label for="show_heading_text"> <?php _e('Show title on top of the table of contents', 'toc+'); ?></label><br />
 		<div class="more_toc_options<?php if ( !$this->options['show_heading_text'] ) echo ' disabled'; ?>">
-			<input type="text" class="regular-text" value="<?php echo htmlentities($this->options['heading_text']); ?>" id="heading_text" name="heading_text" />
+			<input type="text" class="regular-text" value="<?php echo htmlentities( $this->options['heading_text'], ENT_COMPAT, 'UTF-8' ); ?>" id="heading_text" name="heading_text" />
 			<span class="description"><label for="heading_text"><?php _e('Eg: Contents, Table of Contents, Page Contents', 'toc+'); ?></label></span>
 		</div>
 	</td>
@@ -434,7 +438,7 @@ if ( !class_exists( 'toc' ) ) :
 		</select>
 		<div class="more_toc_options<?php if ( 'User defined' != $this->options['width'] ) echo ' disabled'; ?>">
 			<label for="width_custom"><?php _e('Please enter a number and', 'toc+'); ?></label><label for="width_custom_units"> <?php _e('select its units, eg: 100px, 10em', 'toc+'); ?></label><br />
-			<input type="text" class="regular-text" value="<?php echo htmlentities($this->options['width_custom']); ?>" id="width_custom" name="width_custom" />
+			<input type="text" class="regular-text" value="<?php echo intval($this->options['width_custom']); ?>" id="width_custom" name="width_custom" />
 			<select name="width_custom_units" id="width_custom_units">
 				<option value="px"<?php if ( 'px' == $this->options['width_custom_units'] ) echo ' selected="selected"'; ?>>px</option>
 				<option value="%"<?php if ( '%' == $this->options['width_custom_units'] ) echo ' selected="selected"'; ?>>%</option>
@@ -529,13 +533,13 @@ if ( !class_exists( 'toc' ) ) :
 </tr>
 <tr>
 	<th><label for="sitemap_pages"><?php _e('Pages label', 'toc+'); ?></label></th>
-	<td><input type="text" class="regular-text" value="<?php echo htmlentities($this->options['sitemap_pages']); ?>" id="sitemap_pages" name="sitemap_pages" />
+	<td><input type="text" class="regular-text" value="<?php echo htmlentities( $this->options['sitemap_pages'], ENT_COMPAT, 'UTF-8' ); ?>" id="sitemap_pages" name="sitemap_pages" />
 		<span class="description"><?php _e('Eg: Pages, Page List', 'toc+'); ?></span>
 	</td>
 </tr>
 <tr>
 	<th><label for="sitemap_categories"><?php _e('Categories label', 'toc+'); ?></label></th>
-	<td><input type="text" class="regular-text" value="<?php echo htmlentities($this->options['sitemap_categories']); ?>" id="sitemap_categories" name="sitemap_categories" />
+	<td><input type="text" class="regular-text" value="<?php echo htmlentities( $this->options['sitemap_categories'], ENT_COMPAT, 'UTF-8' ); ?>" id="sitemap_categories" name="sitemap_categories" />
 		<span class="description"><?php _e('Eg: Categories, Category List', 'toc+'); ?></span>
 	</td>
 </tr>
@@ -626,7 +630,7 @@ if ( !class_exists( 'toc' ) ) :
 				$return = str_replace('&amp;', '', $return);
 				
 				// remove punctuation
-				$return = preg_replace('/[!"$%&\'()*+,.\/:;<=>?@[\]^`{|}~]/', '', $return);
+				$return = preg_replace('/[!"#$%&\'()*+,.\/:;<=>?@[\]^`{|}~]/', '', $return);
 				
 				// convert spaces to _
 				$return = str_replace(
@@ -806,7 +810,7 @@ if ( !class_exists( 'toc' ) ) :
 						$html .= ';"';
 					}
 					$html .= '>';
-					if ( $this->options['show_heading_text'] ) $html .= '<p class="toc_title">' . htmlentities($this->options['heading_text']) . '</p>';
+					if ( $this->options['show_heading_text'] ) $html .= '<p class="toc_title">' . htmlentities( $this->options['heading_text'], ENT_COMPAT, 'UTF-8' ) . '</p>';
 					$html .= '<ul>' . $items . '</ul></div>' . "\n";
 					
 					if ( $custom_toc_position !== false ) {

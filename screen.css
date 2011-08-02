@@ -29,11 +29,13 @@
 #toc_container.toc_black {
 	background: #000;
 }
-.toc_title {
+#toc_container p.toc_title {
 	text-align: center;
 	font-weight: bold;
+	margin: 0 0 1em 0;
+	padding: 0;
 }
-#toc_container.toc_black .toc_title {
+#toc_container.toc_black p.toc_title {
 	color: #aaa;
 }
 .toc_wrap_left {
