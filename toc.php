@@ -35,7 +35,7 @@ FOR CONSIDERATION:
 	- highlight target css
 */
 
- 
+
 define( 'TOC_POSITION_BEFORE_FIRST_HEADING', 1 );
 define( 'TOC_POSITION_TOP', 2 );
 define( 'TOC_POSITION_BOTTOM', 3 );
@@ -64,9 +64,10 @@ if ( !class_exists( 'toc' ) ) :
 			$this->path = dirname( WP_PLUGIN_URL . '/' . plugin_basename( __FILE__ ) );
 			$this->show_toc = true;
 			$this->exclude_post_types = array( 'attachment', 'revision', 'nav_menu_item', 'safecss' );
-		
+
 			// get options
 			$defaults = array(		// default options
+				'fragment_prefix' => 'i',
 				'position' => TOC_POSITION_BEFORE_FIRST_HEADING,
 				'start' => TOC_MIN_START,
 				'show_heading_text' => true,
@@ -287,6 +288,7 @@ if ( !class_exists( 'toc' ) ) :
 			// wp-includes/load.php::wp_magic_quotes()
 
 			$this->options = array(
+				'fragment_prefix' => trim($_POST['fragment_prefix']),
 				'position' => intval($_POST['position']),
 				'start' => intval($_POST['start']),
 				'show_heading_text' => ($_POST['show_heading_text']) ? true : false,
@@ -492,8 +494,24 @@ if ( !class_exists( 'toc' ) ) :
 <input type="text" name="background_colour" id="background_colour" value="#00ffff" /><div id="background_colour_wheel"></div>
 -->
 
-<h3>Advanced usage <span class="show_hide">(<a href="#toc_advanced_usage">show</a>)</span></h3>
+<h3><?php _e('Advanced', 'toc+'); ?> <span class="show_hide">(<a href="#toc_advanced_usage">show</a>)</span></h3>
 <div id="toc_advanced_usage">
+	<h4><?php _e('Power options', 'toc+'); ?></h4>
+	<table class="form-table">
+	<tbody>
+	<tr>
+		<th><label for="fragment_prefix"><?php _e('Default anchor prefix', 'toc+'); ?></label></th>
+		<td>
+			<input type="text" class="regular-text" value="<?php echo htmlentities( $this->options['fragment_prefix'] ); ?>" id="fragment_prefix" name="fragment_prefix" /><br />
+			<label for="fragment_prefix"><?php _e('Anchor targets are restricted to alphanumeric characters as per HTML specification (see readme for more detail). The default anchor prefix will be used when no characters qualify. When left blank, a number will be used instead.'); ?><br />
+			<?php _e('This option normally applies to content written in character sets other than ASCII.', 'toc+'); ?><br />
+			<span class="description"><?php _e('Eg: i, toc_index, index, _', 'toc+'); ?></span></label>
+		</td>
+	</tr>
+	</tbody>
+	</table>
+
+	<h4><?php _e('Usage', 'toc+'); ?></h4>
 	<p>If you would like to fully customise the position of the table of contents, you can use the <code>[toc]</code> shortcode by placing it at the desired position of your post, page or custom post type. This method allows you to generate the table of contents despite having auto insertion disabled for its content type. Supports the following parameters:</p>
 	<ul>
 		<li><strong>label</strong> text, title of the table of contents</li>
@@ -627,10 +645,10 @@ if ( !class_exists( 'toc' ) ) :
 				$return = trim( strip_tags($title) );
 				
 				// remove &amp;
-				$return = str_replace('&amp;', '', $return);
+				$return = str_replace( '&amp;', '', $return );
 				
-				// remove punctuation
-				$return = preg_replace('/[!"#$%&\'()*+,.\/:;<=>?@[\]^`{|}~]/', '', $return);
+				// remove non alphanumeric chars
+				$return = preg_replace( '/[^a-zA-Z0-9 \-_]*/', '', $return );
 				
 				// convert spaces to _
 				$return = str_replace(
@@ -638,6 +656,14 @@ if ( !class_exists( 'toc' ) ) :
 					'_',
 					$return
 				);
+				
+				// remove leading _- if any
+				$return = ltrim( $return, '_-' );
+
+				// if only a number, then prepend with the prefix to avoid any collisions with IDs
+				if ( is_numeric($return) )  {
+					$return = ( $this->options['fragment_prefix'] ) ? $this->options['fragment_prefix'] . '-' . $return : '_' . $return;
+				}
 			}
 			
 			return $return;

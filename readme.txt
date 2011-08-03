@@ -4,7 +4,7 @@ Donate link:
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.0
 Tested up to: 3.3
-Stable tag: 1108
+Stable tag: 1108.1
 
 A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 
@@ -63,8 +63,15 @@ When parameters are left out, they will fallback to the default settings.
 
 == Changelog ==
 
-= 1108 - 1 August 2011 =
-* New: option to hide the title on top of the table of contents.  Thanks to [http://dublue.com/plugins/toc/#comment-82](Andrew) for the suggestion.
+= 1108.1 =
+* Released: 3 August 2011
+* Anchor targets (eg anything after #) are now limited to ASCII characters as some mobile user agents do not accept internationalised characters.  This is also a recommendation in the [HTML spec](http://www.w3.org/TR/html4/struct/links.html#h-12.2.1).  A new advanced admin option has been added to specify the default prefix when no characters qualify.
+* Make TOC, Pages and Category labels compatible with UTF-8 characters.
+* Support ' " \ characters in labels as it was being escaped by WordPress before saving.
+
+= 1108 =
+* Released: 1 August 2011
+* New: option to hide the title on top of the table of contents.  Thanks to [Andrew](http://dublue.com/plugins/toc/#comment-82) for the suggestion.
 * New: option to preserve existing theme specified bullet images for unordered list elements.
 * New: option to set the width of the table of contents.  You can select from a number of common widths, or define your own.
 * Allow 3 to be set as the minimum number of headings for auto insertion.  The default stays at 4.
@@ -73,15 +80,17 @@ When parameters are left out, they will fallback to the default settings.
 * Now uses the heading as the anchor target rather than toc_index.
 * Adjusted CSS styles for lists to be a little more consistent across themes (eg list-style, margins & paddings).
 * Fixed: typo 'heirarchy' should be 'hierarchy'.  Also thanks to Andrew.
-* Fixed: addressed an issue while saving on networked installs using sub directories.  Thanks to [http://dublue.com/plugins/toc/#comment-79](Aubrey).
+* Fixed: addressed an issue while saving on networked installs using sub directories.  Thanks to [Aubrey](http://dublue.com/plugins/toc/#comment-79).
 * Fixed: closing of the last list item when deeply nested.
 
-= 1107.1 - 10 July 2011 =
+= 1107.1 =
+* Released: 10 July 2011
 * New: added `[toc]` shortcode to generate the table of contents at the preferred position.  Also useful for sites that only require a TOC on a small handful of pages.
 * New: smooth scroll effect added to animate to anchor rather than jump.  It's off by default.
 * New: appearance options to match your theme a little bit more.
 
-= 1107 - 1 July 2011 =
+= 1107 =
+* Released: 1 July 2011
 * First world release (functional & feature packed)
 
 

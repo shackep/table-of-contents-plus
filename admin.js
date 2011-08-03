@@ -40,6 +40,11 @@ jQuery(document).ready(function($) {
 		width = width.replace(/[^0-9]/, '');
 		$('input#width_custom').val(width);
 	});
+	$('input#fragment_prefix').keyup(function() {
+		var fragment = $(this).val();
+		fragment = fragment.replace(/[^a-zA-Z0-9_\-]/g, '');
+		$('input#fragment_prefix').val(fragment);
+	});
 	
 	if ( $.farbtastic ) {
 		$('#background_colour_wheel').hide();

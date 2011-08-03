@@ -1,6 +1,10 @@
 div.tab_content table {
 	margin-bottom: 1em;
 }
+div.tab_content ul li {
+	margin-left: 2em;
+	list-style-type: disc;
+}
 ul#tabbed-nav {
 	margin-top: 1em;
 }
