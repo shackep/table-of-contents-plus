@@ -1,20 +1,24 @@
 jQuery(document).ready(function($) {
 
 	if ( $.smoothScroll ) {
-		var target = hostname = hash = null;
+		var target = hostname = pathname = qs = hash = null;
 
 		$('body a').click(function(event) {
 			// 1.6 moved some attributes to the .prop method
 			if ( minVersion('1.6') ) {
 				hostname = $(this).prop('hostname');
+				pathname = $(this).prop('pathname');
+				qs = $(this).prop('search');
 				hash = $(this).prop('hash');
 			}
 			else {
 				hostname = $(this).attr('hostname');
+				pathname = $(this).attr('pathname');
+				qs = $(this).attr('search');
 				hash = $(this).attr('hash');
 			}
 
-			if ( (window.location.hostname == hostname) && (hash !== '') ) {
+			if ( (window.location.hostname == hostname) && (window.location.pathname == pathname) && (window.location.search == qs) && (hash !== '') ) {
 				// escape jquery selector chars, but keep the #
 				var hash_selector = hash.replace(/([ !"$%&'()*+,.\/:;<=>?@[\]^`{|}~])/g, '\\$1');
 				// check if element exists with id=__
@@ -25,14 +29,55 @@ jQuery(document).ready(function($) {
 					anchor = hash;
 					anchor = anchor.replace('#', '');
 					target = 'a[name="' + anchor  + '"]';
+					// verify it exists
+					if ( $(target).length == 0 )
+						target = '';
 				}
-				event.preventDefault();
-				$.smoothScroll({
-					scrollTarget: target,
-					offset: -30
-				});
-
+				
+				if ( target ) {
+					event.preventDefault();
+					$.smoothScroll({
+						scrollTarget: target,
+						offset: -30
+					});
+				}
 			}
+		});
+	}
+	
+	if ( typeof tocplus != 'undefined' ) {
+		$.fn.shrinkTOCWidth = function() {
+			$(this).css({
+				width: 'auto',
+				display: 'table'
+			});
+			if ( $.browser.msie && parseInt($.browser.version) == 7 )
+				$(this).css('width', '');
+		}
+	
+		var visibility_text = ($.cookie('tocplus_hidetoc')) ? tocplus.visibility_show : tocplus.visibility_hide ;
+		$('#toc_container p.toc_title').append(' <span class="toc_toggle">[<a href="#">' + visibility_text + '</a>]</span>');
+		if ( visibility_text == tocplus.visibility_show ) {
+			$('ul.toc_list').hide();
+			$('#toc_container').shrinkTOCWidth();
+		}
+
+		$('span.toc_toggle a').click(function(event) {
+			event.preventDefault();
+			switch( $(this).html() ) {
+				case $('<div/>').html(tocplus.visibility_hide).text():
+					$(this).html(tocplus.visibility_show);
+					$.cookie('tocplus_hidetoc', '1', { expires: 30, path: '/' });
+					$('#toc_container').shrinkTOCWidth();
+					break;
+				
+				case $('<div/>').html(tocplus.visibility_show).text():	// do next
+				default:
+					$(this).html(tocplus.visibility_hide);
+					$.cookie('tocplus_hidetoc', null, { path: '/' });
+					$('#toc_container').css('width', tocplus.width);
+			}
+			$('ul.toc_list').toggle('fast');
 		});
 	}
 	
@@ -40,7 +85,6 @@ jQuery(document).ready(function($) {
 		var $vrs = window.jQuery.fn.jquery.split('.'),
 			min = version.split('.');
 		for (var i=0, len=$vrs.length; i<len; i++) {
-			console.log($vrs[i], min[i]);
 			if (min[i] && $vrs[i] < min[i]) {
 				return false;
 			}

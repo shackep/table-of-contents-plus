@@ -29,14 +29,24 @@
 #toc_container.toc_black {
 	background: #000;
 }
+#toc_container.toc_transparent {
+	background: none transparent;
+}
 #toc_container p.toc_title {
 	text-align: center;
 	font-weight: bold;
-	margin: 0 0 1em 0;
+	margin: 0;
 	padding: 0;
 }
 #toc_container.toc_black p.toc_title {
 	color: #aaa;
+}
+#toc_container span.toc_toggle {
+	font-weight: normal;
+	font-size: 90%;
+}
+#toc_container ul.toc_list {
+	margin-top: 1em;
 }
 .toc_wrap_left {
 	float: left;

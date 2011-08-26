@@ -5,7 +5,7 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1108.1
+Version: 		1108.2
 License:		GPL2
 */
 
@@ -23,6 +23,10 @@ License:		GPL2
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+/*
+GPL licenced Oxygen icon used for the colour wheel - http://www.iconfinder.com/search/?q=iconset%3Aoxygen
 */
 
 /**
@@ -48,7 +52,14 @@ define( 'TOC_THEME_GREY', 1 );
 define( 'TOC_THEME_LIGHT_BLUE', 2 );
 define( 'TOC_THEME_WHITE', 3 );
 define( 'TOC_THEME_BLACK', 4 );
+define( 'TOC_THEME_TRANSPARENT', 99 );
 define( 'TOC_THEME_CUSTOM', 100 );
+define( 'TOC_DEFAULT_BACKGROUND_COLOUR', '#f9f9f9' );
+define( 'TOC_DEFAULT_BORDER_COLOUR', '#aaaaaa' );
+define( 'TOC_DEFAULT_TITLE_COLOUR', '#' );
+define( 'TOC_DEFAULT_LINKS_COLOUR', '#' );
+define( 'TOC_DEFAULT_LINKS_HOVER_COLOUR', '#' );
+define( 'TOC_DEFAULT_LINKS_VISITED_COLOUR', '#' );
 
 
 if ( !class_exists( 'toc' ) ) :
@@ -76,12 +87,22 @@ if ( !class_exists( 'toc' ) ) :
 				'show_heirarchy' => true,
 				'ordered_list' => true,
 				'smooth_scroll' => false,
+				'visibility' => true,
+				'visibility_show' => 'show',
+				'visibility_hide' => 'hide',
 				'width' => '275px',
 				'width_custom' => '275',
 				'width_custom_units' => 'px',
 				'wrapping' => TOC_WRAPPING_NONE,
 				'theme' => TOC_THEME_GREY,
+				'custom_background_colour' => TOC_DEFAULT_BACKGROUND_COLOUR,
+				'custom_border_colour' => TOC_DEFAULT_BORDER_COLOUR,
+				'custom_title_colour' => TOC_DEFAULT_TITLE_COLOUR,
+				'custom_links_colour' => TOC_DEFAULT_LINKS_COLOUR,
+				'custom_links_hover_colour' => TOC_DEFAULT_LINKS_HOVER_COLOUR,
+				'custom_links_visited_colour' => TOC_DEFAULT_LINKS_VISITED_COLOUR,
 				'bullet_spacing' => false,
+				'include_homepage' => false,
 				'sitemap_show_page_listing' => true,
 				'sitemap_show_category_listing' => true,
 				'sitemap_heading_type' => 3,
@@ -94,6 +115,7 @@ if ( !class_exists( 'toc' ) ) :
 			add_action( 'init', array(&$this, 'init') );
 			add_action( 'wp_print_styles', array(&$this, 'public_styles') );
 			add_action( 'template_redirect', array(&$this, 'template_redirect') );
+			add_action( 'wp_head', array(&$this, 'wp_head') );
 			add_action( 'admin_init', array(&$this, 'admin_init') );
 			add_action( 'admin_menu', array(&$this, 'admin_menu') );
 			
@@ -117,7 +139,7 @@ if ( !class_exists( 'toc' ) ) :
 		function plugin_action_links( $links, $file )
 		{
 			if ( $file == 'table-of-contents-plus/' . basename(__FILE__) ) {
-				$settings_link = '<a href="options-general.php?page=toc">' . __('Settings') . '</a>';
+				$settings_link = '<a href="options-general.php?page=toc">' . __('Settings', 'toc+') . '</a>';
 				$links = array_merge( array( $settings_link ), $links );
 			}
 			return $links;
@@ -234,6 +256,7 @@ if ( !class_exists( 'toc' ) ) :
 		{
 			wp_register_style( 'toc-screen', $this->path . '/screen.css' );
 			wp_register_script( 'smooth-scroll', $this->path . '/jquery.smooth-scroll.min.js', array('jquery') );
+			wp_register_script( 'cookie', $this->path . '/jquery.cookie.min.js', array('jquery') );
 			wp_register_script( 'toc-front', $this->path . '/front.js', array('jquery') );
 		}
 		
@@ -265,11 +288,43 @@ if ( !class_exists( 'toc' ) ) :
 		 */
 		function admin_options_head()
 		{
-			//wp_enqueue_style( 'farbtastic' );
-			//wp_enqueue_script( 'farbtastic' );
+			wp_enqueue_style( 'farbtastic' );
+			wp_enqueue_script( 'farbtastic' );
 			wp_enqueue_script ( 'jquery' );
 			wp_enqueue_script( 'toc_admin_script' );
 			wp_enqueue_style( 'toc_admin_style' );
+		}
+		
+		
+		/**
+		 * Tries to convert $string into a valid hex colour.
+		 * Returns $default if $string is not a hex value, otherwise returns verified hex.
+		 */
+		private function hex_value( $string = '', $default = '#' )
+		{
+			$return = $default;
+			
+			if ( $string ) {
+				// strip out non hex chars
+				$return = preg_replace( '/[^a-fA-F0-9]*/', '', $string );
+				
+				switch ( strlen($return) ) {
+					case 3:	// do next
+					case 6:
+						$return = '#' . $return;
+						break;
+					
+					default:
+						if ( strlen($return) > 6 )
+							$return = '#' . substr($return, 0, 6);	// if > 6 chars, then take the first 6
+						elseif ( strlen($return) > 3 && strlen($return) < 6 )
+							$return = '#' . substr($return, 0, 3);	// if between 3 and 6, then take first 3
+						else
+							$return = $default;						// not valid, return $default
+				}
+			}
+			
+			return $return;
 		}
 		
 		
@@ -286,6 +341,13 @@ if ( !class_exists( 'toc' ) ) :
 			// use stripslashes on free text fields that can have ' " \
 			// WordPress automatically slashes these characters as part of 
 			// wp-includes/load.php::wp_magic_quotes()
+			
+			$custom_background_colour = $this->hex_value( trim($_POST['custom_background_colour']), TOC_DEFAULT_BACKGROUND_COLOUR );
+			$custom_border_colour = $this->hex_value( trim($_POST['custom_border_colour']), TOC_DEFAULT_BORDER_COLOUR );
+			$custom_title_colour = $this->hex_value( trim($_POST['custom_title_colour']), TOC_DEFAULT_TITLE_COLOUR );
+			$custom_links_colour = $this->hex_value( trim($_POST['custom_links_colour']), TOC_DEFAULT_LINKS_COLOUR );
+			$custom_links_hover_colour = $this->hex_value( trim($_POST['custom_links_hover_colour']), TOC_DEFAULT_LINKS_HOVER_COLOUR );
+			$custom_links_visited_colour = $this->hex_value( trim($_POST['custom_links_visited_colour']), TOC_DEFAULT_LINKS_VISITED_COLOUR );
 
 			$this->options = array(
 				'fragment_prefix' => trim($_POST['fragment_prefix']),
@@ -297,12 +359,21 @@ if ( !class_exists( 'toc' ) ) :
 				'show_heirarchy' => ($_POST['show_heirarchy']) ? true : false,
 				'ordered_list' => ($_POST['ordered_list']) ? true : false,
 				'smooth_scroll' => ($_POST['smooth_scroll']) ? true : false,
+				'visibility' => ($_POST['visibility']) ? true : false,
+				'visibility_show' => stripslashes( trim($_POST['visibility_show']) ),
+				'visibility_hide' => stripslashes( trim($_POST['visibility_hide']) ),
 				'width' => trim($_POST['width']),
 				'width_custom' => intval($_POST['width_custom']),
 				'width_custom_units' => trim($_POST['width_custom_units']),
 				'wrapping' => intval($_POST['wrapping']),
 				'theme' => intval($_POST['theme']),
+				'custom_background_colour' => $custom_background_colour,
+				'custom_border_colour' => $custom_border_colour,
+				'custom_title_colour' => $custom_title_colour,
+				'custom_links_colour' => $custom_links_colour,
+				'custom_links_hover_colour' => $custom_links_hover_colour,
 				'bullet_spacing' => ($_POST['bullet_spacing']) ? true : false,
+				'include_homepage' => ($_POST['include_homepage']) ? true : false,
 				'sitemap_show_page_listing' => ($_POST['sitemap_show_page_listing']) ? true : false,
 				'sitemap_show_category_listing' => ($_POST['sitemap_show_category_listing']) ? true : false,
 				'sitemap_heading_type' => intval($_POST['sitemap_heading_type']),
@@ -371,16 +442,6 @@ if ( !class_exists( 'toc' ) ) :
 	</td>
 </tr>
 <tr>
-	<th><label for="show_heading_text"><?php _e('Heading text', 'toc+'); ?></label></th>
-	<td>
-		<input type="checkbox" value="1" id="show_heading_text" name="show_heading_text"<?php if ( $this->options['show_heading_text'] ) echo ' checked="checked"'; ?> /><label for="show_heading_text"> <?php _e('Show title on top of the table of contents', 'toc+'); ?></label><br />
-		<div class="more_toc_options<?php if ( !$this->options['show_heading_text'] ) echo ' disabled'; ?>">
-			<input type="text" class="regular-text" value="<?php echo htmlentities( $this->options['heading_text'], ENT_COMPAT, 'UTF-8' ); ?>" id="heading_text" name="heading_text" />
-			<span class="description"><label for="heading_text"><?php _e('Eg: Contents, Table of Contents, Page Contents', 'toc+'); ?></label></span>
-		</div>
-	</td>
-</tr>
-<tr>
 	<th><?php _e('Auto insert for the following content types', 'toc+'); ?></th>
 	<td><?php
 			foreach (get_post_types() as $post_type) {
@@ -392,6 +453,38 @@ if ( !class_exists( 'toc' ) ) :
 				}
 			}
 ?>
+</tr>
+<tr>
+	<th><label for="show_heading_text"><?php _e('Heading text', 'toc+'); ?></label></th>
+	<td>
+		<input type="checkbox" value="1" id="show_heading_text" name="show_heading_text"<?php if ( $this->options['show_heading_text'] ) echo ' checked="checked"'; ?> /><label for="show_heading_text"> <?php _e('Show title on top of the table of contents', 'toc+'); ?></label><br />
+		<div class="more_toc_options<?php if ( !$this->options['show_heading_text'] ) echo ' disabled'; ?>">
+			<input type="text" class="regular-text" value="<?php echo htmlentities( $this->options['heading_text'], ENT_COMPAT, 'UTF-8' ); ?>" id="heading_text" name="heading_text" />
+			<span class="description"><label for="heading_text"><?php _e('Eg: Contents, Table of Contents, Page Contents', 'toc+'); ?></label></span>
+		</div>
+	</td>
+</tr>
+<tr>
+	<th><label for="visibility"><?php _e('Enable visibility option', 'toc+'); ?></label></th>
+	<td>
+		<input type="checkbox" value="1" id="visibility" name="visibility"<?php if ( $this->options['visibility'] ) echo ' checked="checked"'; ?> /><label for="visibility"> <?php _e( 'Allow the user to toggle the visibility of the table of contents', 'toc+'); ?></label><br />
+		<div class="more_toc_options<?php if ( !$this->options['visibility'] ) echo ' disabled'; ?>">
+			<table class="more_toc_options_table">
+			<tbody>
+			<tr>
+				<th><label for="visibility_show"><?php _e('Show text', 'toc+'); ?></label></th>
+				<td><input type="text" class="" value="<?php echo htmlentities( $this->options['visibility_show'], ENT_COMPAT, 'UTF-8' ); ?>" id="visibility_show" name="visibility_show" />
+				<span class="description"><label for="visibility_show"><?php _e('Eg: show', 'toc+'); ?></label></span></td>
+			</tr>
+			<tr>
+				<th><label for="visibility_hide"><?php _e('Hide text', 'toc+'); ?></label></th>
+				<td><input type="text" class="" value="<?php echo htmlentities( $this->options['visibility_hide'], ENT_COMPAT, 'UTF-8' ); ?>" id="visibility_hide" name="visibility_hide" />
+				<span class="description"><label for="visibility_hide"><?php _e('Eg: hide', 'toc+'); ?></label></span></td>
+			</tr>
+			</tbody>
+			</table>
+		</div>
+	</td>
 </tr>
 <tr>
 	<th><label for="show_heirarchy"><?php _e('Show hierarchy', 'toc+'); ?></label></th>
@@ -463,24 +556,73 @@ if ( !class_exists( 'toc' ) ) :
 	<th><?php _e('Presentation', 'toc+'); ?></th>
 	<td>
 		<div class="toc_theme_option">
-			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_GREY; ?>" value="<?php echo TOC_THEME_GREY; ?>"<?php if ( $this->options['theme'] == TOC_THEME_GREY ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_GREY; ?>"> Grey (default)<br />
+			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_GREY; ?>" value="<?php echo TOC_THEME_GREY; ?>"<?php if ( $this->options['theme'] == TOC_THEME_GREY ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_GREY; ?>"> <?php _e('Grey (default)', 'toc+'); ?><br />
 			<img src="<?php echo $this->path; ?>/images/grey.png" alt="" />
 			</label>
 		</div>
 		<div class="toc_theme_option">
-			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_LIGHT_BLUE; ?>" value="<?php echo TOC_THEME_LIGHT_BLUE; ?>"<?php if ( $this->options['theme'] == TOC_THEME_LIGHT_BLUE ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_LIGHT_BLUE; ?>"> Light blue<br />
+			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_LIGHT_BLUE; ?>" value="<?php echo TOC_THEME_LIGHT_BLUE; ?>"<?php if ( $this->options['theme'] == TOC_THEME_LIGHT_BLUE ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_LIGHT_BLUE; ?>"> <?php _e('Light blue', 'toc+'); ?><br />
 			<img src="<?php echo $this->path; ?>/images/blue.png" alt="" />
 			</label>
 		</div>
 		<div class="toc_theme_option">
-			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_WHITE; ?>" value="<?php echo TOC_THEME_WHITE; ?>"<?php if ( $this->options['theme'] == TOC_THEME_WHITE ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_WHITE; ?>"> White<br />
+			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_WHITE; ?>" value="<?php echo TOC_THEME_WHITE; ?>"<?php if ( $this->options['theme'] == TOC_THEME_WHITE ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_WHITE; ?>"> <?php _e('White', 'toc+'); ?><br />
 			<img src="<?php echo $this->path; ?>/images/white.png" alt="" />
 			</label>
 		</div>
 		<div class="toc_theme_option">
-			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_BLACK; ?>" value="<?php echo TOC_THEME_BLACK; ?>"<?php if ( $this->options['theme'] == TOC_THEME_BLACK ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_BLACK; ?>"> Black<br />
+			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_BLACK; ?>" value="<?php echo TOC_THEME_BLACK; ?>"<?php if ( $this->options['theme'] == TOC_THEME_BLACK ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_BLACK; ?>"> <?php _e('Black', 'toc+'); ?><br />
 			<img src="<?php echo $this->path; ?>/images/black.png" alt="" />
 			</label>
+		</div>
+		<div class="toc_theme_option">
+			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_TRANSPARENT; ?>" value="<?php echo TOC_THEME_TRANSPARENT; ?>"<?php if ( $this->options['theme'] == TOC_THEME_TRANSPARENT ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_TRANSPARENT; ?>"> <?php _e('Transparent', 'toc+'); ?><br />
+			<img src="<?php echo $this->path; ?>/images/transparent.png" alt="" />
+			</label>
+		</div>
+		<div class="toc_theme_option">
+			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_CUSTOM; ?>" value="<?php echo TOC_THEME_CUSTOM; ?>"<?php if ( $this->options['theme'] == TOC_THEME_CUSTOM ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_CUSTOM; ?>"> <?php _e('Custom', 'toc+'); ?><br />
+			<img src="<?php echo $this->path; ?>/images/custom.png" alt="" />
+			</label>
+		</div>
+		<div class="clear"></div>
+		
+		<div class="more_toc_options<?php if ( TOC_THEME_CUSTOM != $this->options['theme'] ) echo ' disabled'; ?>">
+			<table id="theme_custom" class="more_toc_options_table">
+			<tbody>
+			<tr>
+				<th><label for="custom_background_colour"><?php _e('Background', 'toc+'); ?></label></th>
+				<td><input type="text" class="custom_colour_option" value="<?php echo htmlentities( $this->options['custom_background_colour'] ); ?>" id="custom_background_colour" name="custom_background_colour" /> <img src="<?php echo $this->path; ?>/images/colour-wheel.png" alt="" /></td>
+			</tr>
+			<tr>
+				<th><label for="custom_border_colour"><?php _e('Border', 'toc+'); ?></label></th>
+				<td><input type="text" class="custom_colour_option" value="<?php echo htmlentities( $this->options['custom_border_colour'] ); ?>" id="custom_border_colour" name="custom_border_colour" /> <img src="<?php echo $this->path; ?>/images/colour-wheel.png" alt="" /></td>
+			</tr>
+			<tr>
+				<th><label for="custom_title_colour"><?php _e('Title', 'toc+'); ?></label></th>
+				<td><input type="text" class="custom_colour_option" value="<?php echo htmlentities( $this->options['custom_title_colour'] ); ?>" id="custom_title_colour" name="custom_title_colour" /> <img src="<?php echo $this->path; ?>/images/colour-wheel.png" alt="" /></td>
+			</tr>
+			<tr>
+				<th><label for="custom_links_colour"><?php _e('Links', 'toc+'); ?></label></th>
+				<td><input type="text" class="custom_colour_option" value="<?php echo htmlentities( $this->options['custom_links_colour'] ); ?>" id="custom_links_colour" name="custom_links_colour" /> <img src="<?php echo $this->path; ?>/images/colour-wheel.png" alt="" /></td>
+			</tr>
+			<tr>
+				<th><label for="custom_links_hover_colour"><?php _e('Links (hover)', 'toc+'); ?></label></th>
+				<td><input type="text" class="custom_colour_option" value="<?php echo htmlentities( $this->options['custom_links_hover_colour'] ); ?>" id="custom_links_hover_colour" name="custom_links_hover_colour" /> <img src="<?php echo $this->path; ?>/images/colour-wheel.png" alt="" /></td>
+			</tr>
+<?php
+/* visited links not applied when smooth scrolling enabled, leaving out for now
+			<tr>
+				<th><label for="custom_links_visited_colour"><?php _e('Links (visited)', 'toc+'); ?></label></th>
+				<td><input type="text" class="custom_colour_option" value="<?php echo htmlentities( $this->options['custom_links_visited_colour'] ); ?>" id="custom_links_visited_colour" name="custom_links_visited_colour" /> <img src="<?php echo $this->path; ?>/images/colour-wheel.png" alt="" /></td>
+			</tr>
+*/
+?>
+			</tbody>
+			</table>
+			<div id="farbtastic_colour_wheel"></div>
+			<div class="clear"></div>
+			<p><?php _e('Leaving the value as', 'toc+'); echo ' <code>#</code> '; _e("will inherit your theme's styles", 'toc+'); ?></p>
 		</div>
 	</td>
 </tr>
@@ -490,15 +632,16 @@ if ( !class_exists( 'toc' ) ) :
 </tr>
 </tbody>
 </table>
-<!--Background Colour
-<input type="text" name="background_colour" id="background_colour" value="#00ffff" /><div id="background_colour_wheel"></div>
--->
 
 <h3><?php _e('Advanced', 'toc+'); ?> <span class="show_hide">(<a href="#toc_advanced_usage">show</a>)</span></h3>
 <div id="toc_advanced_usage">
 	<h4><?php _e('Power options', 'toc+'); ?></h4>
 	<table class="form-table">
 	<tbody>
+	<tr>
+		<th><label for="include_homepage"><?php _e('Include homepage', 'toc+'); ?></label></th>
+		<td><input type="checkbox" value="1" id="include_homepage" name="include_homepage"<?php if ( $this->options['include_homepage'] ) echo ' checked="checked"'; ?> /><label for="include_homepage"> <?php _e( 'Show the table of contents for qualifying items on the homepage', 'toc+'); ?></label></td>
+	</tr>
 	<tr>
 		<th><label for="fragment_prefix"><?php _e('Default anchor prefix', 'toc+'); ?></label></th>
 		<td>
@@ -622,6 +765,61 @@ if ( !class_exists( 'toc' ) ) :
 			wp_enqueue_style("toc-screen");
 		}
 		
+							
+		function wp_head()
+		{
+			if ( $this->options['theme'] == TOC_THEME_CUSTOM || $this->options['width'] != '275px' ) :
+?>
+<style type="text/css">
+div#toc_container {
+<?php if ( $this->options['theme'] == TOC_THEME_CUSTOM ) : ?>
+	background: <?php echo $this->options['custom_background_colour']; ?>;
+	border: 1px solid <?php echo $this->options['custom_border_colour']; ?>;
+<?php
+	endif;
+	
+	if ( $this->options['width'] != '275px' ) {
+		echo '	width: ';
+		if ( $this->options['width'] != 'User defined' )
+			echo $this->options['width'];
+		else
+			echo $this->options['width_custom'] . $this->options['width_custom_units'];
+		echo ";\n";
+	}
+?>
+}
+<?php if ( $this->options['custom_title_colour'] != TOC_DEFAULT_TITLE_COLOUR ) : ?>
+div#toc_container p.toc_title {
+	color: <?php echo $this->options['custom_title_colour']; ?>;
+}
+<?php
+	endif;
+				
+	if ( $this->options['custom_links_colour'] != TOC_DEFAULT_LINKS_COLOUR ) : ?>
+div#toc_container ul.toc_list a {
+	color: <?php echo $this->options['custom_links_colour']; ?>;
+}
+<?php
+	endif;
+	
+	if ( $this->options['custom_links_hover_colour'] != TOC_DEFAULT_LINKS_HOVER_COLOUR ) : ?>
+div#toc_container ul.toc_list a:hover {
+	color: <?php echo $this->options['custom_links_hover_colour']; ?>;
+}
+<?php
+	endif;
+	
+	if ( $this->options['custom_links_visited_colour'] != TOC_DEFAULT_LINKS_VISITED_COLOUR ) : ?>
+div#toc_container ul.toc_list a:visited {
+	color: <?php echo $this->options['custom_links_visited_colour']; ?>;
+}
+<?php endif; ?>
+</style>
+<?php
+			endif;
+			
+		}
+		
 		
 		/**
 		 * Load front end javascript only on front end pages.  Putting it into 'init' will
@@ -631,6 +829,19 @@ if ( !class_exists( 'toc' ) ) :
 		{
 			if ( $this->options['smooth_scroll'] ) wp_enqueue_script( 'smooth-scroll' );
 			wp_enqueue_script( 'toc-front' );
+			if ( $this->options['visibility'] ) {
+				$width = ( $this->options['width'] != 'User defined' ) ? $this->options['width'] : $this->options['width_custom'] . $this->options['width_custom_units'];
+				wp_enqueue_script( 'cookie' );
+				wp_localize_script(
+					'toc-front',
+					'tocplus',
+					array(
+						'visibility_show' => esc_js($this->options['visibility_show']),
+						'visibility_hide' => esc_js($this->options['visibility_hide']),
+						'width' => esc_js($width)
+					)
+				);
+			}
 		}
 		
 		
@@ -746,7 +957,8 @@ if ( !class_exists( 'toc' ) ) :
 			$matches = $find = $replace = array();
 
 			if ( 
-				( in_array(get_post_type($post), $this->options['auto_insert_post_types']) && $this->show_toc && !is_search() && !is_archive() ) || 
+				( in_array(get_post_type($post), $this->options['auto_insert_post_types']) && $this->show_toc && !is_search() && !is_archive() && !is_front_page() ) || 
+				( $this->options['include_homepage'] && is_front_page() ) ||
 				( $custom_toc_position !== false )
 			) {
 				// get all headings
@@ -808,6 +1020,10 @@ if ( !class_exists( 'toc' ) ) :
 						case TOC_THEME_BLACK:
 							$css_classes .= ' toc_black';
 							break;
+						
+						case TOC_THEME_TRANSPARENT:
+							$css_classes .= ' toc_transparent';
+							break;
 					
 						case TOC_THEME_GREY:
 						default:
@@ -826,18 +1042,9 @@ if ( !class_exists( 'toc' ) ) :
 					if ( !$css_classes ) $css_classes = ' ';
 					
 					// add container, toc title and list items
-					$html = '<div id="toc_container" class="' . $css_classes . '"';
-					if ( $this->options['width'] != '275px' ) {
-						$html .= ' style="width: ';
-						if ( $this->options['width'] != 'User defined' )
-							$html .= $this->options['width'];
-						else
-							$html .= $this->options['width_custom'] . $this->options['width_custom_units'];
-						$html .= ';"';
-					}
-					$html .= '>';
+					$html = '<div id="toc_container" class="' . $css_classes . '">';
 					if ( $this->options['show_heading_text'] ) $html .= '<p class="toc_title">' . htmlentities( $this->options['heading_text'], ENT_COMPAT, 'UTF-8' ) . '</p>';
-					$html .= '<ul>' . $items . '</ul></div>' . "\n";
+					$html .= '<ul class="toc_list">' . $items . '</ul></div>' . "\n";
 					
 					if ( $custom_toc_position !== false ) {
 						$find[] = '<!--TOC-->';

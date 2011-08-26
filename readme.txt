@@ -4,7 +4,7 @@ Donate link:
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.0
 Tested up to: 3.3
-Stable tag: 1108.1
+Stable tag: 1108.2
 
 A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 
@@ -62,6 +62,15 @@ When parameters are left out, they will fallback to the default settings.
 
 
 == Changelog ==
+
+= 1108.2 =
+* Released: 26 August 2011
+* New: visibility option to show/hide the table of contents.  This option is enabled by default so if you don't want it, turn it off in the options.  Thanks to [Wafflecone](http://dublue.com/plugins/toc/#comment-123) and [Mike](http://dublue.com/plugins/toc/comment-page-1/#comment-160) for the suggestion.
+* New: transparent presentation option added.
+* New: custom presentation option with colour wheel for you to select your own background, border, title and link colours.
+* TOC display on homepage has been disabled by default as most configurations would not require it there.  If you want to enable it, you can do so under a new advanced admin option "Include homepage".
+* Make smooth scrolling less zealous with anchors and be more compatible with other plugins that may use # to initiate custom javascript actions.
+* Minor admin cross browser CSS enhancements like background gradients and indents.
 
 = 1108.1 =
 * Released: 3 August 2011
