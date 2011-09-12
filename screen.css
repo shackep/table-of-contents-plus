@@ -45,7 +45,7 @@
 	font-weight: normal;
 	font-size: 90%;
 }
-#toc_container ul.toc_list {
+#toc_container p.toc_title + ul.toc_list {
 	margin-top: 1em;
 }
 .toc_wrap_left {

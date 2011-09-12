@@ -5,12 +5,12 @@ jQuery(document).ready(function($) {
 
 	$('ul#tabbed-nav li').click(function(event) {
 		event.preventDefault();
-		$('ul#tabbed-nav li').removeClass('active'); //Remove any "active" class
-		$(this).addClass('active'); //Add "active" class to selected tab
-		$('.tab_content').hide(); //Hide all tab content
+		$('ul#tabbed-nav li').removeClass('active');
+		$(this).addClass('active');
+		$('.tab_content').hide();
 
-		var activeTab = $(this).find('a').attr('href'); //Find the href attribute value to identify the active tab + content
-		$(activeTab).fadeIn(); //Fade in the active ID content
+		var activeTab = $(this).find('a').attr('href');
+		$(activeTab).fadeIn();
 	});
 	
 	$('h3 span.show_hide a').click(function(event) {

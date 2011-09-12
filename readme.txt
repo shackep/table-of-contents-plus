@@ -4,7 +4,7 @@ Donate link:
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.0
 Tested up to: 3.3
-Stable tag: 1108.2
+Stable tag: 1109
 
 A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 
@@ -62,6 +62,14 @@ When parameters are left out, they will fallback to the default settings.
 
 
 == Changelog ==
+
+= 1109 =
+* Released: 12 September 2011
+* Adjusted hide action for a smoother transition.
+* Apply custom link and hover colours (when selected) to show/hide link in the title.
+* Renamed jquery.cookie.min.js to jquery.c.min.js to overcome false positive with [mod_security](https://www.modsecurity.org/tracker/browse/CORERULES-29).  Mod_security would block requests to this file which would break the ability to save a user's show/hide preference.  In some cases, it has also broken other javascript functionality.  Additionally, a better graceful non disruptive fallback is now in place to prevent possible repeat.  Thanks goes to Shonie for helping debug the issue.
+* Moved 'visibility option' into 'heading text'.
+* Fixed: restored smooth scroll effect for Internet Explorer since 1108.2 introduced 'pathname' checks.
 
 = 1108.2 =
 * Released: 26 August 2011

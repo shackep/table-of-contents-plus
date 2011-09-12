@@ -5,7 +5,7 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1108.2
+Version: 		1109
 License:		GPL2
 */
 
@@ -33,7 +33,7 @@ GPL licenced Oxygen icon used for the colour wheel - http://www.iconfinder.com/s
 FOR CONSIDERATION:
 - back to top links
 - sitemap
-	- exclude pages/categories
+	- easier exclude pages/categories
 	- support other taxonomies
 - advanced options
 	- highlight target css
@@ -80,7 +80,7 @@ if ( !class_exists( 'toc' ) ) :
 			$defaults = array(		// default options
 				'fragment_prefix' => 'i',
 				'position' => TOC_POSITION_BEFORE_FIRST_HEADING,
-				'start' => TOC_MIN_START,
+				'start' => 4,
 				'show_heading_text' => true,
 				'heading_text' => 'Contents',
 				'auto_insert_post_types' => array('page'),
@@ -256,7 +256,7 @@ if ( !class_exists( 'toc' ) ) :
 		{
 			wp_register_style( 'toc-screen', $this->path . '/screen.css' );
 			wp_register_script( 'smooth-scroll', $this->path . '/jquery.smooth-scroll.min.js', array('jquery') );
-			wp_register_script( 'cookie', $this->path . '/jquery.cookie.min.js', array('jquery') );
+			wp_register_script( 'cookie', $this->path . '/jquery.c.min.js', array('jquery') );
 			wp_register_script( 'toc-front', $this->path . '/front.js', array('jquery') );
 		}
 		
@@ -290,7 +290,7 @@ if ( !class_exists( 'toc' ) ) :
 		{
 			wp_enqueue_style( 'farbtastic' );
 			wp_enqueue_script( 'farbtastic' );
-			wp_enqueue_script ( 'jquery' );
+			wp_enqueue_script( 'jquery' );
 			wp_enqueue_script( 'toc_admin_script' );
 			wp_enqueue_style( 'toc_admin_style' );
 		}
@@ -460,29 +460,25 @@ if ( !class_exists( 'toc' ) ) :
 		<input type="checkbox" value="1" id="show_heading_text" name="show_heading_text"<?php if ( $this->options['show_heading_text'] ) echo ' checked="checked"'; ?> /><label for="show_heading_text"> <?php _e('Show title on top of the table of contents', 'toc+'); ?></label><br />
 		<div class="more_toc_options<?php if ( !$this->options['show_heading_text'] ) echo ' disabled'; ?>">
 			<input type="text" class="regular-text" value="<?php echo htmlentities( $this->options['heading_text'], ENT_COMPAT, 'UTF-8' ); ?>" id="heading_text" name="heading_text" />
-			<span class="description"><label for="heading_text"><?php _e('Eg: Contents, Table of Contents, Page Contents', 'toc+'); ?></label></span>
-		</div>
-	</td>
-</tr>
-<tr>
-	<th><label for="visibility"><?php _e('Enable visibility option', 'toc+'); ?></label></th>
-	<td>
-		<input type="checkbox" value="1" id="visibility" name="visibility"<?php if ( $this->options['visibility'] ) echo ' checked="checked"'; ?> /><label for="visibility"> <?php _e( 'Allow the user to toggle the visibility of the table of contents', 'toc+'); ?></label><br />
-		<div class="more_toc_options<?php if ( !$this->options['visibility'] ) echo ' disabled'; ?>">
-			<table class="more_toc_options_table">
-			<tbody>
-			<tr>
-				<th><label for="visibility_show"><?php _e('Show text', 'toc+'); ?></label></th>
-				<td><input type="text" class="" value="<?php echo htmlentities( $this->options['visibility_show'], ENT_COMPAT, 'UTF-8' ); ?>" id="visibility_show" name="visibility_show" />
-				<span class="description"><label for="visibility_show"><?php _e('Eg: show', 'toc+'); ?></label></span></td>
-			</tr>
-			<tr>
-				<th><label for="visibility_hide"><?php _e('Hide text', 'toc+'); ?></label></th>
-				<td><input type="text" class="" value="<?php echo htmlentities( $this->options['visibility_hide'], ENT_COMPAT, 'UTF-8' ); ?>" id="visibility_hide" name="visibility_hide" />
-				<span class="description"><label for="visibility_hide"><?php _e('Eg: hide', 'toc+'); ?></label></span></td>
-			</tr>
-			</tbody>
-			</table>
+			<span class="description"><label for="heading_text"><?php _e('Eg: Contents, Table of Contents, Page Contents', 'toc+'); ?></label></span><br /><br />
+			
+			<input type="checkbox" value="1" id="visibility" name="visibility"<?php if ( $this->options['visibility'] ) echo ' checked="checked"'; ?> /><label for="visibility"> <?php _e( 'Allow the user to toggle the visibility of the table of contents', 'toc+'); ?></label><br />
+			<div class="more_toc_options<?php if ( !$this->options['visibility'] ) echo ' disabled'; ?>">
+				<table class="more_toc_options_table">
+				<tbody>
+				<tr>
+					<th><label for="visibility_show"><?php _e('Show text', 'toc+'); ?></label></th>
+					<td><input type="text" class="" value="<?php echo htmlentities( $this->options['visibility_show'], ENT_COMPAT, 'UTF-8' ); ?>" id="visibility_show" name="visibility_show" />
+					<span class="description"><label for="visibility_show"><?php _e('Eg: show', 'toc+'); ?></label></span></td>
+				</tr>
+				<tr>
+					<th><label for="visibility_hide"><?php _e('Hide text', 'toc+'); ?></label></th>
+					<td><input type="text" class="" value="<?php echo htmlentities( $this->options['visibility_hide'], ENT_COMPAT, 'UTF-8' ); ?>" id="visibility_hide" name="visibility_hide" />
+					<span class="description"><label for="visibility_hide"><?php _e('Eg: hide', 'toc+'); ?></label></span></td>
+				</tr>
+				</tbody>
+				</table>
+			</div>
 		</div>
 	</td>
 </tr>
@@ -743,6 +739,10 @@ if ( !class_exists( 'toc' ) ) :
 <p>This normally occurs when there is a CSS clear directive in or around the heading specified by the theme author. This directive tells the user agent to reset the previous wrapping specifications.</p>
 <p>You can adjust your theme's CSS or try moving the table of contents position to the top of the page. If you didn't build your theme, I'd highly suggest you try the <a href="http://wordpress.org/extend/plugins/safecss/">Custom CSS plugin</a> if you wish to make CSS changes.</p>
 
+<h3>The sitemap uses a strange font disimilar to the rest of the site</h3>
+<p>No extra styles are created for the sitemap, instead it inherits any styles you used when adding the shortcode. If you copy and pasted, you probably also copied the 'code' tags surrounding it so remove them if this is the case.</p>
+<p>In most cases, try to have the shortcode on its own line with nothing before or after the square brackets.</p>
+
 <h3>What's with the version numbers?</h3>
 <p>I like Ubuntu, especially the server product and highly recommend it for Linux deployments. I also like their versioning scheme and have adopted it. All versions are in a YYMM format (year month) of when the release was made.</p>
 
@@ -796,6 +796,7 @@ div#toc_container p.toc_title {
 	endif;
 				
 	if ( $this->options['custom_links_colour'] != TOC_DEFAULT_LINKS_COLOUR ) : ?>
+div#toc_container p.toc_title a,
 div#toc_container ul.toc_list a {
 	color: <?php echo $this->options['custom_links_colour']; ?>;
 }
@@ -803,6 +804,7 @@ div#toc_container ul.toc_list a {
 	endif;
 	
 	if ( $this->options['custom_links_hover_colour'] != TOC_DEFAULT_LINKS_HOVER_COLOUR ) : ?>
+div#toc_container p.toc_title a:hover,
 div#toc_container ul.toc_list a:hover {
 	color: <?php echo $this->options['custom_links_hover_colour']; ?>;
 }
@@ -810,6 +812,7 @@ div#toc_container ul.toc_list a:hover {
 	endif;
 	
 	if ( $this->options['custom_links_visited_colour'] != TOC_DEFAULT_LINKS_VISITED_COLOUR ) : ?>
+div#toc_container p.toc_title a:visited,
 div#toc_container ul.toc_list a:visited {
 	color: <?php echo $this->options['custom_links_visited_colour']; ?>;
 }
@@ -829,7 +832,7 @@ div#toc_container ul.toc_list a:visited {
 		{
 			if ( $this->options['smooth_scroll'] ) wp_enqueue_script( 'smooth-scroll' );
 			wp_enqueue_script( 'toc-front' );
-			if ( $this->options['visibility'] ) {
+			if ( $this->options['show_heading_text'] && $this->options['visibility'] ) {
 				$width = ( $this->options['width'] != 'User defined' ) ? $this->options['width'] : $this->options['width_custom'] . $this->options['width_custom_units'];
 				wp_enqueue_script( 'cookie' );
 				wp_localize_script(

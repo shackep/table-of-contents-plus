@@ -18,6 +18,13 @@ jQuery(document).ready(function($) {
 				hash = $(this).attr('hash');
 			}
 
+			// ie strips out the preceeding / from pathname
+			if ( pathname.length > 0 ) {
+				if ( pathname.charAt(0) != '/' ) {
+					pathname = '/' + pathname;
+				}
+			}
+			
 			if ( (window.location.hostname == hostname) && (window.location.pathname == pathname) && (window.location.search == qs) && (hash !== '') ) {
 				// escape jquery selector chars, but keep the #
 				var hash_selector = hash.replace(/([ !"$%&'()*+,.\/:;<=>?@[\]^`{|}~])/g, '\\$1');
@@ -55,7 +62,12 @@ jQuery(document).ready(function($) {
 				$(this).css('width', '');
 		}
 	
-		var visibility_text = ($.cookie('tocplus_hidetoc')) ? tocplus.visibility_show : tocplus.visibility_hide ;
+		if ( $.cookie )
+			var visibility_text = ($.cookie('tocplus_hidetoc')) ? tocplus.visibility_show : tocplus.visibility_hide ;
+		else
+			var visibility_text = tocplus.visibility_hide;
+			
+
 		$('#toc_container p.toc_title').append(' <span class="toc_toggle">[<a href="#">' + visibility_text + '</a>]</span>');
 		if ( visibility_text == tocplus.visibility_show ) {
 			$('ul.toc_list').hide();
@@ -67,17 +79,18 @@ jQuery(document).ready(function($) {
 			switch( $(this).html() ) {
 				case $('<div/>').html(tocplus.visibility_hide).text():
 					$(this).html(tocplus.visibility_show);
-					$.cookie('tocplus_hidetoc', '1', { expires: 30, path: '/' });
+					if ( $.cookie ) $.cookie('tocplus_hidetoc', '1', { expires: 30, path: '/' });
+					$('ul.toc_list').hide('fast');
 					$('#toc_container').shrinkTOCWidth();
 					break;
 				
 				case $('<div/>').html(tocplus.visibility_show).text():	// do next
 				default:
 					$(this).html(tocplus.visibility_hide);
-					$.cookie('tocplus_hidetoc', null, { path: '/' });
+					if ( $.cookie ) $.cookie('tocplus_hidetoc', null, { path: '/' });
 					$('#toc_container').css('width', tocplus.width);
+					$('ul.toc_list').show('fast');
 			}
-			$('ul.toc_list').toggle('fast');
 		});
 	}
 	
