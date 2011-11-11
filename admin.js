@@ -44,9 +44,9 @@ jQuery(document).ready(function($) {
 		else
 			$(this).siblings('div.more_toc_options').hide('fast');
 	});
-	$('input#width_custom').keyup(function() {
-		var width = $(this).val();
-		$(this).val( width.replace(/[^0-9]/, '') );
+	$('input#width_custom, input#font_size').keyup(function() {
+		var value = $(this).val();
+		$(this).val( value.replace(/[^0-9\.]/, '') );
 	});
 	$('input#fragment_prefix').keyup(function() {
 		var fragment = $(this).val();

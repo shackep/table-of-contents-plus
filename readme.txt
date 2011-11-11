@@ -4,7 +4,7 @@ Donate link:
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.0
 Tested up to: 3.3
-Stable tag: 1109
+Stable tag: 1111
 
 A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 
@@ -47,21 +47,47 @@ This plugin requires PHP 5.
 
 == Shortcodes ==
 
-* `[toc]` lets you generate the table of contents at the preferred position.  Useful for sites that only require a TOC on a small handful of pages.  Supports the following parameters:
-** "label": text, title of the table of contents
-** "no_label": true/false, shows or hides the title
-* `[no_toc]` allows you to disable the table of contents for the current post, page, or custom post type.
-* `[sitemap]` produces a listing of all pages and categories for your site. You can use this on any post, page or even in a text widget.
-* `[sitemap_pages]` lets you print out a listing of only pages. The following parameters are accepted:
-** "heading": number between 1 and 6, defines which html heading to use
-** "label": text, title of the list
-** "no_label": true/false, shows or hides the list heading
-** "exclude": IDs of the pages or categories you wish to exclude
-When parameters are left out, they will fallback to the default settings.
-* `[sitemap_categories]` as above but for categories.
+When attributes are left out for the shortcodes below, they will fallback to the settings you defined under Settings > TOC+.
+
+= `[toc]` =
+Lets you generate the table of contents at the preferred position.  Useful for sites that only require a TOC on a small handful of pages.  Supports the following attributes:
+* "label": text, title of the table of contents
+* "no_label": true/false, shows or hides the title
+* "wrapping": text, either "left" or "right"
+* "heading_levels": numbers, this lets you select the heading levels you want included in the table of contents.  Separate multiple levels with a comma.  Example: include headings 3, 4 and 5 but exclude the others with `heading_levels="3,4,5"`
+
+= `[no_toc]` =
+Allows you to disable the table of contents for the current post, page, or custom post type.
+
+= `[sitemap]` =
+Produces a listing of all pages and categories for your site. You can use this on any post, page or even in a text widget.
+
+= `[sitemap_pages]` =
+Lets you print out a listing of only pages. The following attributes are accepted:
+* "heading": number between 1 and 6, defines which html heading to use
+* "label": text, title of the list
+* "no_label": true/false, shows or hides the list heading
+* "exclude": IDs of the pages or categories you wish to exclude
+
+= `[sitemap_categories]` =
+Same as `[sitemap_pages]` but for categories.
 
 
 == Changelog ==
+
+= 1111 =
+* Released: 11 November 2011
+* New: option to adjust the font size.  Thanks to [DJ](http://dublue.com/plugins/toc/comment-page-1/#comment-323) for the suggestion.  The default remains at 95%.
+* New: advanced option to select the heading levels (1 to 6) to be included.  Thanks to those that hinted about wanting to achieve this.
+* New: you can now have the TOC appear in the sidebar via the TOC+ widget.  Thanks to [Nick Daugherty](http://dublue.com/plugins/toc/comment-page-1/#comment-172) and [DJ](http://dublue.com/plugins/toc/comment-page-1/#comment-323) for the suggestion.
+* The TOC shortcode now supports the *heading_levels* attribute to allow you to limit the headings you want to appear in the table of contents on a per instance basis.  Separate multiple headings with a comma.  For example: include headings 3, 4 and 5 but exclude the others with `[toc heading_levels="3,4,5"]`
+* The TOC shortcode also supports the *wrapping* attribute with possible values: "left" or "right".  This lets you wrap text next to the table of contents on a per instance basis.  Thanks to [Phil](http://dublue.com/plugins/toc/comment-page-1/#comment-331) for the suggestion.
+* Better internal numbering system to avoid repeated headings.  This means that for non-repeated headings, there is no trailing number in the anchor.
+* Consolidated information about shortcodes and their attributes into the help tab.
+* Fixed: repeated headings on the same level are no longer broken.  For users with international character sets, please report any strange garbage characters in your headings (eg a character ends up being a question mark, square symbol, or diamond).  Thanks to [Juozas](http://dublue.com/plugins/toc/comment-page-2/#comment-441) for the assistance.
+* Fixed: removed PHP notices on a verbosely configured PHP setup.
+* Fixed: suppress TOC frame output when heading count was less than the minimum required.
+* Note: when removing the last TOC+ widget, please make sure you disable the "Show the table of contents only in the sidebar" option otherwise your table of contents won't appear where you'd expect.  I will look to address this in the future.
 
 = 1109 =
 * Released: 12 September 2011

@@ -2,7 +2,8 @@
 	margin: 0;
 	padding: 0;
 }
-#toc_container.no_bullets ul, #toc_container.no_bullets li {
+#toc_container.no_bullets ul, #toc_container.no_bullets li,
+.toc_widget_list, .toc_widget_list li {
 	background: none;
 	list-style-type: none;
 }
