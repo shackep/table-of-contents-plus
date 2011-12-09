@@ -4,7 +4,7 @@ Donate link:
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.0
 Tested up to: 3.3
-Stable tag: 1112
+Stable tag: 1112.1
 
 A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 
@@ -74,6 +74,10 @@ Same as `[sitemap_pages]` but for categories.
 
 
 == Changelog ==
+
+= 1112.1 =
+* Released: 9 December 2011
+* Forgot to update version number.
 
 = 1112 =
 * Released: 9 December 2011
