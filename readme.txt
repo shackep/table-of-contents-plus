@@ -4,14 +4,14 @@ Donate link:
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.0
 Tested up to: 3.3
-Stable tag: 1111
+Stable tag: 1112
 
 A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 
 
 == Description ==
 
-A powerful yet user friendly plugin that automatically creates a context specific index or table of contents for long pages (and custom post types).  More than just a table of contents plugin, this plugin can also output a sitemap listing pages and/or categories.
+A powerful yet user friendly plugin that automatically creates a context specific index or table of contents (TOC) for long pages (and custom post types).  More than just a table of contents plugin, this plugin can also output a sitemap listing pages and/or categories.
 
 Built from the ground up and with Wikipedia in mind, the table of contents by default appears before the first heading on a page.  This allows the author to insert lead-in content that may summarise or introduce the rest of the page.  It also uses a unique numbering scheme that doesn't get lost through CSS differences across themes.
 
@@ -19,7 +19,7 @@ This plugin is a great companion for content rich sites such as content manageme
 
 Includes an administration options panel where you can customise settings like display position, define the minimum number of headings before an index is displayed, appearance, etc.  Using shortcodes, you can override default behaviour such as special exclusions on a specific page or even to hide the table of contents altogether.
 
-Custom post types are supported, however, auto insertion works only when the_content() has been used by the custom post type. Each post type will appear in the options panel, so enable the ones you want.
+Custom post types are supported, however, auto insertion works only when the_content() has been used by the custom post type.  Each post type will appear in the options panel, so enable the ones you want.
 
 If you have questions or suggestions, please place them at [http://dublue.com/plugins/toc/](http://dublue.com/plugins/toc/)
 
@@ -74,6 +74,14 @@ Same as `[sitemap_pages]` but for categories.
 
 
 == Changelog ==
+
+= 1112 =
+* Released: 9 December 2011
+* New: auto width option added which takes up only the needed amount of horizontal space up to 100%.
+* Removed trailing - or _ characters from the anchor to make it more pretty.
+* This plugin's long name has changed from "Table of Contents+" to "Table of Contents Plus".  The short name remains as "TOC+".
+* Fixed: when using the TOC shortcode within your content, your post or article would display the TOC on the homepage despite having the exclude from homepage option enabled.  If you also used the "more tag", then you may have resulted with an empty TOC box.  These are now addressed.
+* Fixed: all anchors ending with "-2" when no headings were repeated.  This was caused by plugins and themes that trigger `the_content` filter.  The counters are now reset everytime `the_content` is run rather than only on initialisation.
 
 = 1111 =
 * Released: 11 November 2011

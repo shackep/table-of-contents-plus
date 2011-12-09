@@ -76,7 +76,7 @@ if ( !class_exists( 'toc' ) ) :
 			$this->path = dirname( WP_PLUGIN_URL . '/' . plugin_basename( __FILE__ ) );
 			$this->show_toc = true;
 			$this->exclude_post_types = array( 'attachment', 'revision', 'nav_menu_item', 'safecss' );
-			$this->collection_collector = array();
+			$this->collision_collector = array();
 
 			// get options
 			$defaults = array(		// default options
@@ -473,7 +473,7 @@ if ( !class_exists( 'toc' ) ) :
 ?>
 <div id='toc' class='wrap'>
 <div id="icon-options-general" class="icon32"><br /></div>
-<h2><?php _e('Table of Contents', 'toc+'); ?>+</h2>
+<h2><?php _e('Table of Contents Plus', 'toc+'); ?></h2>
 <?php echo $msg; ?>
 <form method="post" action="<?php echo htmlentities('?page=' . $_GET['page'] . '&update'); ?>">
 <?php wp_nonce_field( plugin_basename(__FILE__), 'toc-admin-options' ); ?>
@@ -587,6 +587,7 @@ if ( !class_exists( 'toc' ) ) :
 				<option value="400px"<?php if ( '400px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('400px'); ?></option>
 			</optgroup>
 			<optgroup label="<?php _e('Relative', 'toc+'); ?>">
+				<option value="Auto"<?php if ( 'Auto' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('Auto'); ?></option>
 				<option value="25%"<?php if ( '25%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('25%'); ?></option>
 				<option value="33%"<?php if ( '33%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('33%'); ?></option>
 				<option value="50%"<?php if ( '50%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('50%'); ?></option>
@@ -925,6 +926,8 @@ div#toc_container {
 		else
 			echo $this->options['width_custom'] . $this->options['width_custom_units'];
 		echo ";\n";
+		if ( $this->options['width'] == 'Auto' )
+			echo '	display: table;' . "\n";
 	}
 	
 	if ( '95%' != $this->options['font_size'] . $this->options['font_size_units'] ) {
@@ -1014,6 +1017,9 @@ div#toc_container ul.toc_list a:visited {
 					'_',
 					$return
 				);
+				
+				// remove trailing - and _
+				$return = rtrim( $return, '-_' );
 
 				// if blank, then prepend with the fragment prefix
 				// blank anchors normally appear on sites that don't use the latin charset
@@ -1022,12 +1028,12 @@ div#toc_container ul.toc_list a:visited {
 				}
 			}
 			
-			if ( array_key_exists($return, $this->collection_collector) ) {
-				$this->collection_collector[$return]++;
-				$return .= '-' . $this->collection_collector[$return];
+			if ( array_key_exists($return, $this->collision_collector) ) {
+				$this->collision_collector[$return]++;
+				$return .= '-' . $this->collision_collector[$return];
 			}
 			else
-				$this->collection_collector[$return] = 1;
+				$this->collision_collector[$return] = 1;
 			
 			return $return;
 		}
@@ -1041,7 +1047,7 @@ div#toc_container ul.toc_list a:visited {
 			$numbered_items_min = null;
 			
 			// reset the internal collision collection
-			$this->collection_collector = array();
+			$this->collision_collector = array();
 			
 			// find the minimum heading to establish our baseline
 			for ($i = 0; $i < count($matches); $i++) {
@@ -1165,7 +1171,7 @@ div#toc_container ul.toc_list a:visited {
 				// get all headings
 				// the html spec allows for a maximum of 6 heading depths
 				if ( preg_match_all('/(<h([1-6]{1})[^>]*>).*<\/h\2>/', $content, $matches, PREG_SET_ORDER) >= $this->options['start'] ) {
-				
+
 					// remove disqualified headings (if any) as defined by heading_levels
 					if ( count($this->options['heading_levels']) != 6 ) {
 						$new_matches = array();
@@ -1213,14 +1219,28 @@ div#toc_container ul.toc_list a:visited {
 		/**
 		 * Returns true if the table of contents is eligible to be printed, false otherwise.
 		 */
-		public function is_eligible()
+		public function is_eligible( $shortcode_used = false )
 		{
 			global $post;
-			
-			return (
-				( in_array(get_post_type($post), $this->options['auto_insert_post_types']) && $this->show_toc && !is_search() && !is_archive() && !is_front_page() ) || 
-				( $this->options['include_homepage'] && is_front_page() )
-			);
+
+			// if the shortcode was used, this bypasses many of the global options
+			if ( $shortcode_used !== false ) {
+				// shortcode is used, make sure it adheres to the exclude from 
+				// homepage option if we're on the homepage
+				if ( !$this->options['include_homepage'] && is_front_page() )
+					return false;
+				else
+					return true;
+			}
+			else {
+				if (
+					( in_array(get_post_type($post), $this->options['auto_insert_post_types']) && $this->show_toc && !is_search() && !is_archive() && !is_front_page() ) || 
+					( $this->options['include_homepage'] && is_front_page() )
+				)
+					return true;
+				else
+					return false;
+			}
 		}
 		
 		
@@ -1230,95 +1250,100 @@ div#toc_container ul.toc_list a:visited {
 			$items = $css_classes = $anchor = '';
 			$custom_toc_position = strpos($content, '<!--TOC-->');
 			$find = $replace = array();
+			
+			// reset the internal collision collection as the_content may have been triggered elsewhere
+			// eg by themes or other plugins that need to read in content such as metadata fields in
+			// the head html tag, or to provide descriptions to twitter/facebook
+			$this->collision_collector = array();
 
-			if ( 
-				$this->is_eligible() || 
-				( $custom_toc_position !== false )		// user specified toc to appear at a custom position
-			) {
+			if ( $this->is_eligible($custom_toc_position) ) {
+			
 				$items = $this->extract_headings( &$find, &$replace, $content );
 
-				// do we display the toc within the content or has the user opted
-				// to only show it in the widget?  if so, then we still need to 
-				// make the find/replace call to insert the anchors
-				if ( $this->options['show_toc_in_widget_only'] ) {
-					$content = $this->mb_find_replace($find, $replace, $content);
-				}
-				else {
-
-					// wrapping css classes
-					switch( $this->options['wrapping'] ) {
-						case TOC_WRAPPING_LEFT:
-							$css_classes .= ' toc_wrap_left';
-							break;
-							
-						case TOC_WRAPPING_RIGHT:
-							$css_classes .= ' toc_wrap_right';
-							break;
-
-						case TOC_WRAPPING_NONE:
-						default:
-							// do nothing
-					}
-					
-					// colour themes
-					switch ( $this->options['theme'] ) {
-						case TOC_THEME_LIGHT_BLUE:
-							$css_classes .= ' toc_light_blue';
-							break;
-						
-						case TOC_THEME_WHITE:
-							$css_classes .= ' toc_white';
-							break;
-							
-						case TOC_THEME_BLACK:
-							$css_classes .= ' toc_black';
-							break;
-						
-						case TOC_THEME_TRANSPARENT:
-							$css_classes .= ' toc_transparent';
-							break;
-					
-						case TOC_THEME_GREY:
-						default:
-							// do nothing
-					}
-					
-					// bullets?
-					if ( $this->options['bullet_spacing'] )
-						$css_classes .= ' have_bullets';
-					else
-						$css_classes .= ' no_bullets';
-					
-					$css_classes = trim($css_classes);
-					
-					// an empty class="" is invalid markup!
-					if ( !$css_classes ) $css_classes = ' ';
-					
-					// add container, toc title and list items
-					$html = '<div id="toc_container" class="' . $css_classes . '">';
-					if ( $this->options['show_heading_text'] ) $html .= '<p class="toc_title">' . htmlentities( $this->options['heading_text'], ENT_COMPAT, 'UTF-8' ) . '</p>';
-					$html .= '<ul class="toc_list">' . $items . '</ul></div>' . "\n";
-					
-					if ( $custom_toc_position !== false ) {
-						$find[] = '<!--TOC-->';
-						$replace[] = $html;
+				if ( $items ) {
+					// do we display the toc within the content or has the user opted
+					// to only show it in the widget?  if so, then we still need to 
+					// make the find/replace call to insert the anchors
+					if ( $this->options['show_toc_in_widget_only'] ) {
 						$content = $this->mb_find_replace($find, $replace, $content);
 					}
-					else {	
-						if ( count($find) > 0 ) {
-							switch ( $this->options['position'] ) {
-								case TOC_POSITION_TOP:
-									$content = $html . $this->mb_find_replace($find, $replace, $content);
-									break;
+					else {
+
+						// wrapping css classes
+						switch( $this->options['wrapping'] ) {
+							case TOC_WRAPPING_LEFT:
+								$css_classes .= ' toc_wrap_left';
+								break;
 								
-								case TOC_POSITION_BOTTOM:
-									$content = $this->mb_find_replace($find, $replace, $content) . $html;
-									break;
+							case TOC_WRAPPING_RIGHT:
+								$css_classes .= ' toc_wrap_right';
+								break;
+
+							case TOC_WRAPPING_NONE:
+							default:
+								// do nothing
+						}
+						
+						// colour themes
+						switch ( $this->options['theme'] ) {
+							case TOC_THEME_LIGHT_BLUE:
+								$css_classes .= ' toc_light_blue';
+								break;
 							
-								case TOC_POSITION_BEFORE_FIRST_HEADING:
-								default:
-									$replace[0] = $html . $replace[0];
-									$content = $this->mb_find_replace($find, $replace, $content);
+							case TOC_THEME_WHITE:
+								$css_classes .= ' toc_white';
+								break;
+								
+							case TOC_THEME_BLACK:
+								$css_classes .= ' toc_black';
+								break;
+							
+							case TOC_THEME_TRANSPARENT:
+								$css_classes .= ' toc_transparent';
+								break;
+						
+							case TOC_THEME_GREY:
+							default:
+								// do nothing
+						}
+						
+						// bullets?
+						if ( $this->options['bullet_spacing'] )
+							$css_classes .= ' have_bullets';
+						else
+							$css_classes .= ' no_bullets';
+						
+						$css_classes = trim($css_classes);
+						
+						// an empty class="" is invalid markup!
+						if ( !$css_classes ) $css_classes = ' ';
+						
+						// add container, toc title and list items
+						$html = '<div id="toc_container" class="' . $css_classes . '">';
+						if ( $this->options['show_heading_text'] ) $html .= '<p class="toc_title">' . htmlentities( $this->options['heading_text'], ENT_COMPAT, 'UTF-8' ) . '</p>';
+						$html .= '<ul class="toc_list">' . $items . '</ul></div>' . "\n";
+						
+						if ( $custom_toc_position !== false ) {
+							$find[] = '<!--TOC-->';
+							$replace[] = $html;
+							$content = $this->mb_find_replace($find, $replace, $content);
+						}
+						else {	
+							if ( count($find) > 0 ) {
+								switch ( $this->options['position'] ) {
+									case TOC_POSITION_TOP:
+										$content = $html . $this->mb_find_replace($find, $replace, $content);
+										break;
+									
+									case TOC_POSITION_BOTTOM:
+										$content = $this->mb_find_replace($find, $replace, $content) . $html;
+										break;
+								
+									case TOC_POSITION_BEFORE_FIRST_HEADING:
+									default:
+										$replace[0] = $html . $replace[0];
+										$content = $this->mb_find_replace($find, $replace, $content);
+								}
 							}
 						}
 					}
@@ -1360,16 +1385,12 @@ if ( !class_exists( 'toc_widget' ) ) :
 			$items = $custom_toc_position = '';
 			$find = $replace = array();
 			
+			$toc_options = $tic->get_options();
 			$post = get_post( $wp_query->post->ID );
 			$custom_toc_position = strpos( $post->post_content, '[toc]' );	// at this point, shortcodes haven't run yet so we can't search for <!--TOC-->
 			
-			if ( 
-				$tic->is_eligible() ||
-				$custom_toc_position !== false
-			) {
+			if ( $tic->is_eligible($custom_toc_position) ) {
 				
-				$toc_options = $tic->get_options();
-
 				extract( $args );
 				
 				$items = $tic->extract_headings( &$find, &$replace, $post->post_content );
@@ -1424,7 +1445,6 @@ if ( !class_exists( 'toc_widget' ) ) :
 		
 			$defaults = array( 
 				'title' => ''
-				//'hide_inline' => $toc_options['show_toc_in_widget_only']
 			);
 			$instance = wp_parse_args( (array)$instance, $defaults );
 
