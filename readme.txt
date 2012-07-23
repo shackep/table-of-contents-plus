@@ -3,8 +3,10 @@ Contributors: conjur3r
 Donate link: 
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.0
-Tested up to: 3.3
-Stable tag: 1112.1
+Tested up to: 3.5
+Stable tag: 1207
+License: GPLv2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 
@@ -47,33 +49,44 @@ This plugin requires PHP 5.
 
 == Shortcodes ==
 
-When attributes are left out for the shortcodes below, they will fallback to the settings you defined under Settings > TOC+.
+When attributes are left out for the shortcodes below, they will fallback to the settings you defined under Settings > TOC+.  The following are detailed in the help tab.
 
-= `[toc]` =
+= [toc] =
 Lets you generate the table of contents at the preferred position.  Useful for sites that only require a TOC on a small handful of pages.  Supports the following attributes:
 * "label": text, title of the table of contents
 * "no_label": true/false, shows or hides the title
 * "wrapping": text, either "left" or "right"
 * "heading_levels": numbers, this lets you select the heading levels you want included in the table of contents.  Separate multiple levels with a comma.  Example: include headings 3, 4 and 5 but exclude the others with `heading_levels="3,4,5"`
 
-= `[no_toc]` =
+= [no_toc] =
 Allows you to disable the table of contents for the current post, page, or custom post type.
 
-= `[sitemap]` =
+= [sitemap] =
 Produces a listing of all pages and categories for your site. You can use this on any post, page or even in a text widget.
 
-= `[sitemap_pages]` =
+= [sitemap_pages] =
 Lets you print out a listing of only pages. The following attributes are accepted:
 * "heading": number between 1 and 6, defines which html heading to use
 * "label": text, title of the list
 * "no_label": true/false, shows or hides the list heading
 * "exclude": IDs of the pages or categories you wish to exclude
 
-= `[sitemap_categories]` =
+= [sitemap_categories] =
 Same as `[sitemap_pages]` but for categories.
 
 
 == Changelog ==
+
+= 1207 =
+* Released: 23 July 2012
+* New: when smooth scrolling is enabled, allow the top offset to be specified to support more than the WordPress admin bar (such as Twitter Bootstrap).  The offset is displayed in the advanced section after you have enabled smooth scrolling.  Thanks to [Nicolaus](http://dublue.com/2012/05/12/another-benefit-to-structure-your-web-pages/#comment-2611) for the suggestion.
+* Allow 2 headings to be set as the minimum (used to be 3).  Thanks to [Fran](http://dublue.com/plugins/toc/comment-page-2/#comment-779) for justifying it.
+* Run later in the process so other plugins don't alter the anchor links (eg Google Analytics for WordPress).
+* Do not show a TOC in RSS feeds.  Thanks to [Swashata](http://dublue.com/plugins/toc/comment-page-3/#comment-2875) for raising it.
+* Bump tested version to WordPress 3.5-alpha.
+* Added help material about why some headings may not be appearing.
+* Added banner image for WordPress repository listing.
+* Updated readme.txt with GPLv2 licensing.
 
 = 1112.1 =
 * Released: 9 December 2011

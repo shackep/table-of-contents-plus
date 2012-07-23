@@ -5,11 +5,11 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1112.1
+Version: 		1207
 License:		GPL2
 */
 
-/*  Copyright 2011  Michael Tran  (michael@dublue.com)
+/*  Copyright 2012  Michael Tran  (michael@dublue.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as 
@@ -43,8 +43,9 @@ FOR CONSIDERATION:
 define( 'TOC_POSITION_BEFORE_FIRST_HEADING', 1 );
 define( 'TOC_POSITION_TOP', 2 );
 define( 'TOC_POSITION_BOTTOM', 3 );
-define( 'TOC_MIN_START', 3 );
+define( 'TOC_MIN_START', 2 );
 define( 'TOC_MAX_START', 10 );
+define( 'TOC_SMOOTH_SCROLL_OFFSET', 30 );
 define( 'TOC_WRAPPING_NONE', 0 );
 define( 'TOC_WRAPPING_LEFT', 1 );
 define( 'TOC_WRAPPING_RIGHT', 2 );
@@ -89,6 +90,7 @@ if ( !class_exists( 'toc' ) ) :
 				'show_heirarchy' => true,
 				'ordered_list' => true,
 				'smooth_scroll' => false,
+				'smooth_scroll_offset' => TOC_SMOOTH_SCROLL_OFFSET,
 				'visibility' => true,
 				'visibility_show' => 'show',
 				'visibility_hide' => 'hide',
@@ -126,7 +128,7 @@ if ( !class_exists( 'toc' ) ) :
 			add_action( 'admin_menu', array(&$this, 'admin_menu') );
 			add_action( 'widgets_init', array(&$this, 'widgets_init') );
 			
-			add_filter( 'the_content', array(&$this, 'the_content'), 11 );	// run after shortcodes are interpretted (level 10)
+			add_filter( 'the_content', array(&$this, 'the_content'), 100 );	// run after shortcodes are interpretted (level 10)
 			add_filter( 'plugin_action_links', array(&$this, 'plugin_action_links'), 10, 2 );
 			add_filter( 'widget_text', 'do_shortcode' );
 			
@@ -217,7 +219,7 @@ if ( !class_exists( 'toc' ) ) :
 					$this->options['heading_levels'] = $clean_heading_levels;
 			}
 		
-			if ( !is_search() && !is_archive() )
+			if ( !is_search() && !is_archive() && !is_feed() )
 				return '<!--TOC-->';
 			else
 				return;
@@ -427,6 +429,7 @@ if ( !class_exists( 'toc' ) ) :
 				'show_heirarchy' => (isset($_POST['show_heirarchy']) && $_POST['show_heirarchy']) ? true : false,
 				'ordered_list' => (isset($_POST['ordered_list']) && $_POST['ordered_list']) ? true : false,
 				'smooth_scroll' => (isset($_POST['smooth_scroll']) && $_POST['smooth_scroll']) ? true : false,
+				'smooth_scroll_offset' => intval($_POST['smooth_scroll_offset']),
 				'visibility' => (isset($_POST['visibility']) && $_POST['visibility']) ? true : false,
 				'visibility_show' => stripslashes( trim($_POST['visibility_show']) ),
 				'visibility_hide' => stripslashes( trim($_POST['visibility_hide']) ),
@@ -735,6 +738,13 @@ if ( !class_exists( 'toc' ) ) :
 ?>
 		</td>
 	</tr>
+	<tr id="smooth_scroll_offset_tr" class="<?php if ( !$this->options['smooth_scroll'] ) echo 'disabled'; ?>">
+		<th><label for="smooth_scroll_offset"><?php _e('Smooth scroll top offset', 'toc+'); ?></label></th>
+		<td>
+			<input type="text" class="regular-text" value="<?php echo intval($this->options['smooth_scroll_offset']); ?>" id="smooth_scroll_offset" name="smooth_scroll_offset" /> px<br />
+			<label for="smooth_scroll_offset"><?php _e('If you have a consistent menu across the top of your site, you can adjust the top offset to stop the headings from appearing underneath the top menu. A setting of 30 accommodates the WordPress admin bar. This setting appears after you have enabled smooth scrolling from above.', 'toc+'); ?></label>
+		</td>
+	</tr>
 	<tr>
 		<th><label for="fragment_prefix"><?php _e('Default anchor prefix', 'toc+'); ?></label></th>
 		<td>
@@ -825,6 +835,18 @@ if ( !class_exists( 'toc' ) ) :
 <h3>I've set wrapping to left or right but the headings don't wrap around the table of contents</h3>
 <p>This normally occurs when there is a CSS clear directive in or around the heading specified by the theme author. This directive tells the user agent to reset the previous wrapping specifications.</p>
 <p>You can adjust your theme's CSS or try moving the table of contents position to the top of the page. If you didn't build your theme, I'd highly suggest you try the <a href="http://wordpress.org/extend/plugins/safecss/">Custom CSS plugin</a> if you wish to make CSS changes.</p>
+
+<h3>Why are some headings not included in the table of contents?</h3>
+<p>First, make sure the title text that isn't appearing in the table of contents is actually marked up as a heading (eg heading 1 through to 6).  After verifying that it really is a heading, make sure that there are no linebreaks or enters from the start to the end of the heading HTML tags.  Eg, it should not be like the following:</p>
+<pre>
+&lt;h3&gt;This is
+a really
+good heading&lt;/h3&gt;
+</pre>
+<p>Rather, it should be something like:</p>
+<pre>
+&lt;h3&gt;This is a really good heading&lt;/h3&gt;
+</pre>
 
 <h3>The sitemap uses a strange font disimilar to the rest of the site</h3>
 <p>No extra styles are created for the sitemap, instead it inherits any styles you used when adding the shortcode. If you copy and pasted, you probably also copied the 'code' tags surrounding it so remove them if this is the case.</p>
@@ -977,19 +999,25 @@ div#toc_container ul.toc_list a:visited {
 		 */
 		function template_redirect()
 		{
+			$js_vars = array();
+			
 			if ( $this->options['smooth_scroll'] ) wp_enqueue_script( 'smooth-scroll' );
 			wp_enqueue_script( 'toc-front' );
 			if ( $this->options['show_heading_text'] && $this->options['visibility'] ) {
 				$width = ( $this->options['width'] != 'User defined' ) ? $this->options['width'] : $this->options['width_custom'] . $this->options['width_custom_units'];
 				wp_enqueue_script( 'cookie' );
+				$js_vars['visibility_show'] = esc_js($this->options['visibility_show']);
+				$js_vars['visibility_hide'] = esc_js($this->options['visibility_hide']);
+				$js_vars['width'] = esc_js($width);
+			}
+			if ( $this->options['smooth_scroll_offset'] != TOC_SMOOTH_SCROLL_OFFSET )
+				$js_vars['smooth_scroll_offset'] = esc_js($this->options['smooth_scroll_offset']);
+			
+			if ( count($js_vars) > 0 ) {
 				wp_localize_script(
 					'toc-front',
 					'tocplus',
-					array(
-						'visibility_show' => esc_js($this->options['visibility_show']),
-						'visibility_hide' => esc_js($this->options['visibility_hide']),
-						'width' => esc_js($width)
-					)
+					$js_vars
 				);
 			}
 		}
@@ -1154,12 +1182,12 @@ div#toc_container ul.toc_list a:visited {
 		
 		/**
 		 * This function extracts headings from the html formatted $content.  It will pull out
-		 * only the require headings as specified in the options.  For all qualifying headings,
+		 * only the required headings as specified in the options.  For all qualifying headings,
 		 * this function populates the $find and $replace arrays (both passed by reference)
 		 * with what to search and replace with.
 		 * 
 		 * Returns a html formatted string of list items for each qualifying heading.  This 
-		 * is everything between and not including <ul> and </ul>
+		 * is everything between and NOT including <ul> and </ul>
 		 */
 		public function extract_headings( &$find, &$replace, $content = '' )
 		{
@@ -1172,7 +1200,7 @@ div#toc_container ul.toc_list a:visited {
 				// the html spec allows for a maximum of 6 heading depths
 				if ( preg_match_all('/(<h([1-6]{1})[^>]*>).*<\/h\2>/', $content, $matches, PREG_SET_ORDER) >= $this->options['start'] ) {
 
-					// remove disqualified headings (if any) as defined by heading_levels
+					// remove undesired headings (if any) as defined by heading_levels
 					if ( count($this->options['heading_levels']) != 6 ) {
 						$new_matches = array();
 						for ($i = 0; $i < count($matches); $i++) {
@@ -1223,6 +1251,9 @@ div#toc_container ul.toc_list a:visited {
 		{
 			global $post;
 
+			// do not trigger the TOC when displaying an XML/RSS feed
+			if ( is_feed() ) return false;
+			
 			// if the shortcode was used, this bypasses many of the global options
 			if ( $shortcode_used !== false ) {
 				// shortcode is used, make sure it adheres to the exclude from 
@@ -1257,8 +1288,8 @@ div#toc_container ul.toc_list a:visited {
 			$this->collision_collector = array();
 
 			if ( $this->is_eligible($custom_toc_position) ) {
-			
-				$items = $this->extract_headings( &$find, &$replace, $content );
+				
+				$items = $this->extract_headings(&$find, &$replace, $content);
 
 				if ( $items ) {
 					// do we display the toc within the content or has the user opted
