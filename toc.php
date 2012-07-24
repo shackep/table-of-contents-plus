@@ -316,6 +316,7 @@ if ( !class_exists( 'toc' ) ) :
 		
 		function init()
 		{
+			load_plugin_textdomain( 'toc+', false, dirname(plugin_basename(__FILE__)) . '/languages/' );
 			wp_register_style( 'toc-screen', $this->path . '/screen.css' );
 			wp_register_script( 'smooth-scroll', $this->path . '/jquery.smooth-scroll.min.js', array('jquery') );
 			wp_register_script( 'cookie', $this->path . '/jquery.c.min.js', array('jquery') );
