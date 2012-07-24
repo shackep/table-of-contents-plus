@@ -476,7 +476,7 @@ if ( !class_exists( 'toc' ) ) :
 ?>
 <div id='toc' class='wrap'>
 <div id="icon-options-general" class="icon32"><br /></div>
-<h2><?php _e('Table of Contents Plus', 'toc+'); ?></h2>
+<h2>Table of Contents Plus</h2>
 <?php echo $msg; ?>
 <form method="post" action="<?php echo htmlentities('?page=' . $_GET['page'] . '&update'); ?>">
 <?php wp_nonce_field( plugin_basename(__FILE__), 'toc-admin-options' ); ?>
