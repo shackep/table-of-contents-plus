@@ -495,9 +495,9 @@ if ( !class_exists( 'toc' ) ) :
 	<th><label for="position"><?php _e('Position', 'toc+'); ?></label></th>
 	<td>
 		<select name="position" id="position">
-			<option value="<?php echo TOC_POSITION_BEFORE_FIRST_HEADING; ?>"<?php if ( TOC_POSITION_BEFORE_FIRST_HEADING == $this->options['position'] ) echo ' selected="selected"'; ?>>Before first heading (default)</option>
-			<option value="<?php echo TOC_POSITION_TOP; ?>"<?php if ( TOC_POSITION_TOP == $this->options['position'] ) echo ' selected="selected"'; ?>>Top</option>
-			<option value="<?php echo TOC_POSITION_BOTTOM; ?>"<?php if ( TOC_POSITION_BOTTOM == $this->options['position'] ) echo ' selected="selected"'; ?>>Bottom</option>
+			<option value="<?php echo TOC_POSITION_BEFORE_FIRST_HEADING; ?>"<?php if ( TOC_POSITION_BEFORE_FIRST_HEADING == $this->options['position'] ) echo ' selected="selected"'; ?>><?php _e('Before first heading (default)', 'toc+'); ?></option>
+			<option value="<?php echo TOC_POSITION_TOP; ?>"<?php if ( TOC_POSITION_TOP == $this->options['position'] ) echo ' selected="selected"'; ?>><?php _e('Top', 'toc+'); ?></option>
+			<option value="<?php echo TOC_POSITION_BOTTOM; ?>"<?php if ( TOC_POSITION_BOTTOM == $this->options['position'] ) echo ' selected="selected"'; ?>><?php _e('Bottom', 'toc+'); ?></option>
 		</select>
 	</td>
 </tr>
@@ -579,24 +579,24 @@ if ( !class_exists( 'toc' ) ) :
 	<td>
 		<select name="width" id="width">
 			<optgroup label="<?php _e('Fixed width', 'toc+'); ?>">
-				<option value="200px"<?php if ( '200px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('200px'); ?></option>
-				<option value="225px"<?php if ( '225px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('225px'); ?></option>
-				<option value="250px"<?php if ( '250px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('250px'); ?></option>
-				<option value="275px"<?php if ( '275px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('275px (default)'); ?></option>
-				<option value="300px"<?php if ( '300px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('300px'); ?></option>
-				<option value="325px"<?php if ( '325px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('325px'); ?></option>
-				<option value="350px"<?php if ( '350px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('350px'); ?></option>
-				<option value="375px"<?php if ( '375px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('375px'); ?></option>
-				<option value="400px"<?php if ( '400px' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('400px'); ?></option>
+				<option value="200px"<?php if ( '200px' == $this->options['width'] ) echo ' selected="selected"'; ?>>200px</option>
+				<option value="225px"<?php if ( '225px' == $this->options['width'] ) echo ' selected="selected"'; ?>>225px</option>
+				<option value="250px"<?php if ( '250px' == $this->options['width'] ) echo ' selected="selected"'; ?>>250px</option>
+				<option value="275px"<?php if ( '275px' == $this->options['width'] ) echo ' selected="selected"'; ?>>275px <?php _e('(default)', 'toc+'); ?></option>
+				<option value="300px"<?php if ( '300px' == $this->options['width'] ) echo ' selected="selected"'; ?>>300px</option>
+				<option value="325px"<?php if ( '325px' == $this->options['width'] ) echo ' selected="selected"'; ?>>325px</option>
+				<option value="350px"<?php if ( '350px' == $this->options['width'] ) echo ' selected="selected"'; ?>>350px</option>
+				<option value="375px"<?php if ( '375px' == $this->options['width'] ) echo ' selected="selected"'; ?>>375px</option>
+				<option value="400px"<?php if ( '400px' == $this->options['width'] ) echo ' selected="selected"'; ?>>400px</option>
 			</optgroup>
 			<optgroup label="<?php _e('Relative', 'toc+'); ?>">
-				<option value="Auto"<?php if ( 'Auto' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('Auto'); ?></option>
-				<option value="25%"<?php if ( '25%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('25%'); ?></option>
-				<option value="33%"<?php if ( '33%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('33%'); ?></option>
-				<option value="50%"<?php if ( '50%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('50%'); ?></option>
-				<option value="66%"<?php if ( '66%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('66%'); ?></option>
-				<option value="75%"<?php if ( '75%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('75%'); ?></option>
-				<option value="100%"<?php if ( '100%' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('100%'); ?></option>
+				<option value="Auto"<?php if ( 'Auto' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('Auto', 'toc+'); ?></option>
+				<option value="25%"<?php if ( '25%' == $this->options['width'] ) echo ' selected="selected"'; ?>>25%</option>
+				<option value="33%"<?php if ( '33%' == $this->options['width'] ) echo ' selected="selected"'; ?>>33%</option>
+				<option value="50%"<?php if ( '50%' == $this->options['width'] ) echo ' selected="selected"'; ?>>50%</option>
+				<option value="66%"<?php if ( '66%' == $this->options['width'] ) echo ' selected="selected"'; ?>>66%</option>
+				<option value="75%"<?php if ( '75%' == $this->options['width'] ) echo ' selected="selected"'; ?>>75%</option>
+				<option value="100%"<?php if ( '100%' == $this->options['width'] ) echo ' selected="selected"'; ?>>100%</option>
 			</optgroup>
 			<optgroup label="<?php _e('Other', 'toc+'); ?>">
 				<option value="User defined"<?php if ( 'User defined' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('User defined', 'toc+'); ?></option>
@@ -710,19 +710,19 @@ if ( !class_exists( 'toc' ) ) :
 </tr>
 <tr>
 	<th><label for="bullet_spacing"><?php _e('Preserve theme bullets', 'toc+'); ?></label></th>
-	<td><input type="checkbox" value="1" id="bullet_spacing" name="bullet_spacing"<?php if ( $this->options['bullet_spacing'] ) echo ' checked="checked"'; ?> /><label for="bullet_spacing"> <?php _e( 'If your theme includes background images for unordered list elements, enable this to support them', 'toc+'); ?></label></td>
+	<td><input type="checkbox" value="1" id="bullet_spacing" name="bullet_spacing"<?php if ( $this->options['bullet_spacing'] ) echo ' checked="checked"'; ?> /><label for="bullet_spacing"> <?php _e('If your theme includes background images for unordered list elements, enable this to support them', 'toc+'); ?></label></td>
 </tr>
 </tbody>
 </table>
 
-<h3><?php _e('Advanced', 'toc+'); ?> <span class="show_hide">(<a href="#toc_advanced_usage">show</a>)</span></h3>
+<h3><?php _e('Advanced', 'toc+'); ?> <span class="show_hide">(<a href="#toc_advanced_usage"><?php _e('show', 'toc+'); ?></a>)</span></h3>
 <div id="toc_advanced_usage">
 	<h4><?php _e('Power options', 'toc+'); ?></h4>
 	<table class="form-table">
 	<tbody>
 	<tr>
 		<th><label for="include_homepage"><?php _e('Include homepage', 'toc+'); ?></label></th>
-		<td><input type="checkbox" value="1" id="include_homepage" name="include_homepage"<?php if ( $this->options['include_homepage'] ) echo ' checked="checked"'; ?> /><label for="include_homepage"> <?php _e( 'Show the table of contents for qualifying items on the homepage', 'toc+'); ?></label></td>
+		<td><input type="checkbox" value="1" id="include_homepage" name="include_homepage"<?php if ( $this->options['include_homepage'] ) echo ' checked="checked"'; ?> /><label for="include_homepage"> <?php _e('Show the table of contents for qualifying items on the homepage', 'toc+'); ?></label></td>
 	</tr>
 	<tr>
 		<th><?php _e('Heading levels', 'toc+'); ?></th>
@@ -758,7 +758,7 @@ if ( !class_exists( 'toc' ) ) :
 	</table>
 
 	<h4><?php _e('Usage', 'toc+'); ?></h4>
-	<p>If you would like to fully customise the position of the table of contents, you can use the <code>[toc]</code> shortcode by placing it at the desired position of your post, page or custom post type. This method allows you to generate the table of contents despite having auto insertion disabled for its content type. Please visit the help tab for further information about this shortcode.</p>
+	<p><?php _e('If you would like to fully customise the position of the table of contents, you can use the', 'toc+'); ?> <code>[toc]</code> <?php _e('shortcode by placing it at the desired position of your post, page or custom post type. This method allows you to generate the table of contents despite having auto insertion disabled for its content type. Please visit the help tab for further information about this shortcode.', 'toc+'); ?></p>
 </div>
 
 
@@ -806,13 +806,13 @@ if ( !class_exists( 'toc' ) ) :
 </tbody>
 </table>
 
-<h3>Advanced usage <span class="show_hide">(<a href="#sitemap_advanced_usage">show</a>)</span></h3>
+<h3><?php _e('Advanced usage', 'toc+'); ?> <span class="show_hide">(<a href="#sitemap_advanced_usage"><?php _e('show', 'toc+'); ?></a>)</span></h3>
 <div id="sitemap_advanced_usage">
-	<p><code>[sitemap_pages]</code> lets you print out a listing of only pages. Similarly, <code>[sitemap_categories]</code> can be used to print out a category listing. They both can accept a number of attributes so visit the help tab for more information.</p>
-	<p>Examples</p>
+	<p><code>[sitemap_pages]</code> <?php _e('lets you print out a listing of only pages. Similarly', 'toc+'); ?>, <code>[sitemap_categories]</code> <?php _e('can be used to print out a category listing. They both can accept a number of attributes so visit the help tab for more information.', 'toc+'); ?></p>
+	<p><?php _e('Examples', 'toc+'); ?></p>
 	<ol>
-		<li><code>[sitemap_categories no_label="true"]</code> hides the heading from a category listing</li>
-		<li><code>[sitemap_pages heading="6" label="This is an awesome listing" exclude="1,15"]</code> Uses h6 to display <em>This is an awesome listing</em> on a page listing excluding pages with IDs 1 and 15.</li>
+		<li><code>[sitemap_categories no_label="true"]</code> <?php _e('hides the heading from a category listing', 'toc+'); ?></li>
+		<li><code>[sitemap_pages heading="6" label="This is an awesome listing" exclude="1,15"]</code> <?php _e('Uses h6 to display', 'toc+'); ?> <em>This is an awesome listing</em> <?php _e('on a page listing excluding pages with IDs 1 and 15.', 'toc+'); ?></li>
 	</ol>
 </div>
 
@@ -820,93 +820,93 @@ if ( !class_exists( 'toc' ) ) :
 	</div>
 	<div id="tab3" class="tab_content">
 
-<h3>Where's my table of contents?</h3>
-<p>If you're reading this, then chances are you have successfully installed and enabled the plugin and you're just wondering why the index isn't appearing right?  Try the following:</p>
+<h3><?php _e("Where's my table of contents?", 'toc+'); ?></h3>
+<p><?php _e("If you're reading this, then chances are you have successfully installed and enabled the plugin and you're just wondering why the index isn't appearing right?  Try the following:", 'toc+'); ?></p>
 <ol>
-	<li>In most cases, the post, page or custom post type has less than the minimum number of headings. By default, this is set to four so make sure you have at least four headings within your content. If you want to change this value, you can find it under 'Main Options' &gt; 'Show when'.</li>
-	<li>Is auto insertion enabled for your content type? By default, only pages are enabled.</li>
-	<li>Have you got <code>[no_toc]</code> somewhere within the content? This will disable the index for the current post, page or custom post type.</li>
-	<li>If you are using the TOC+ widget, check if you have the <em>"Show the table of contents only in the sidebar"</em> enabled as this will limit its display to only the sidebar. You can check by going into Appearance &gt; Widgets.</li>
+	<li><?php _e("In most cases, the post, page or custom post type has less than the minimum number of headings. By default, this is set to four so make sure you have at least four headings within your content. If you want to change this value, you can find it under 'Main Options' &gt; 'Show when'.", 'toc+'); ?></li>
+	<li><?php _e('Is auto insertion enabled for your content type? By default, only pages are enabled.', 'toc+'); ?></li>
+	<li><?php _e('Have you got', 'toc+'); ?> <code>[no_toc]</code> <?php _e('somewhere within the content? This will disable the index for the current post, page or custom post type.', 'toc+'); ?></li>
+	<li><?php _e('If you are using the TOC+ widget, check if you have the', 'toc+'); ?> <em>"<?php _e('Show the table of contents only in the sidebar', 'toc+'); ?>"</em> <?php _e('enabled as this will limit its display to only the sidebar. You can check by going into Appearance &gt; Widgets.', 'toc+'); ?></li>
 </ol>
 	
-<h3>How do I stop the table of contents from appearing on a single page?</h3>
-<p>Place the following <code>[no_toc]</code> anywhere on the page to suppress the table of contents. This is known as a shortcode and works for posts, pages and custom post types that make use of the_content().</p>
+<h3><?php _e('How do I stop the table of contents from appearing on a single page?', 'toc+'); ?></h3>
+<p><?php _e('Place the following', 'toc+'); ?> <code>[no_toc]</code> <?php _e('anywhere on the page to suppress the table of contents. This is known as a shortcode and works for posts, pages and custom post types that make use of', 'toc+'); ?> the_content().</p>
 
-<h3>I've set wrapping to left or right but the headings don't wrap around the table of contents</h3>
-<p>This normally occurs when there is a CSS clear directive in or around the heading specified by the theme author. This directive tells the user agent to reset the previous wrapping specifications.</p>
-<p>You can adjust your theme's CSS or try moving the table of contents position to the top of the page. If you didn't build your theme, I'd highly suggest you try the <a href="http://wordpress.org/extend/plugins/safecss/">Custom CSS plugin</a> if you wish to make CSS changes.</p>
+<h3><?php _e("I've set wrapping to left or right but the headings don't wrap around the table of contents", 'toc+'); ?></h3>
+<p><?php _e('This normally occurs when there is a CSS clear directive in or around the heading specified by the theme author. This directive tells the user agent to reset the previous wrapping specifications.', 'toc+'); ?></p>
+<p><?php _e("You can adjust your theme's CSS or try moving the table of contents position to the top of the page. If you didn't build your theme, I'd highly suggest you try the", 'toc+'); ?> <a href="http://wordpress.org/extend/plugins/safecss/">Custom CSS plugin</a> <?php _e('if you wish to make CSS changes.', 'toc+'); ?></p>
 
-<h3>Why are some headings not included in the table of contents?</h3>
-<p>First, make sure the title text that isn't appearing in the table of contents is actually marked up as a heading (eg heading 1 through to 6).  After verifying that it really is a heading, make sure that there are no linebreaks or enters from the start to the end of the heading HTML tags.  Eg, it should not be like the following:</p>
+<h3><?php _e('Why are some headings not included in the table of contents?', 'toc+'); ?></h3>
+<p><?php _e("First, make sure the title text that isn't appearing in the table of contents is actually marked up as a heading (eg heading 1 through to 6).  After verifying that it really is a heading, make sure that there are no linebreaks or enters from the start to the end of the heading HTML tags.  Eg, it should not be like the following:", 'toc+'); ?></p>
 <pre>
 &lt;h3&gt;This is
 a really
 good heading&lt;/h3&gt;
 </pre>
-<p>Rather, it should be something like:</p>
+<p><?php _e('Rather, it should be something like:', 'toc+'); ?></p>
 <pre>
 &lt;h3&gt;This is a really good heading&lt;/h3&gt;
 </pre>
 
-<h3>The sitemap uses a strange font disimilar to the rest of the site</h3>
-<p>No extra styles are created for the sitemap, instead it inherits any styles you used when adding the shortcode. If you copy and pasted, you probably also copied the 'code' tags surrounding it so remove them if this is the case.</p>
-<p>In most cases, try to have the shortcode on its own line with nothing before or after the square brackets.</p>
+<h3><?php _e('The sitemap uses a strange font disimilar to the rest of the site', 'toc+'); ?></h3>
+<p><?php _e("No extra styles are created for the sitemap, instead it inherits any styles you used when adding the shortcode. If you copy and pasted, you probably also copied the 'code' tags surrounding it so remove them if this is the case.", 'toc+'); ?></p>
+<p><?php _e('In most cases, try to have the shortcode on its own line with nothing before or after the square brackets.', 'toc+'); ?></p>
 
-<h3>What were those shortcodes and attributes again?</h3>
-<p>When attributes are left out for the shortcodes below, they will fallback to the settings you defined under Settings &gt; TOC+.</p>
+<h3><?php _e('What were those shortcodes and attributes again?', 'toc+'); ?></h3>
+<p><?php _e('When attributes are left out for the shortcodes below, they will fallback to the settings you defined under Settings &gt; TOC+.', 'toc+'); ?></p>
 <table id="shortcode_table">
 <thead>
 <tr>
-	<th>Shortcode</th>
-	<th>Description</th>
-	<th>Attributes</th>
+	<th><?php _e('Shortcode', 'toc+'); ?></th>
+	<th><?php _e('Description', 'toc+'); ?></th>
+	<th><?php _e('Attributes', 'toc+'); ?></th>
 </tr>
 </thead>
 <tbody>
 <tr>
 	<td>[toc]</td>
-	<td>Lets you generate the table of contents at the preferred position. Also useful for sites that only require a TOC on a small handful of pages.</td>
+	<td><?php _e('Lets you generate the table of contents at the preferred position. Also useful for sites that only require a TOC on a small handful of pages.', 'toc+'); ?></td>
 	<td>
 		<ul>
-			<li><strong>label</strong>: text, title of the table of contents</li>
-			<li><strong>no_label</strong>: true/false, shows or hides the title</li>
-			<li><strong>wrapping</strong>: text, either "left" or "right"</li>
-			<li><strong>heading_levels</strong>: numbers, this lets you select the heading levels you want included in the table of contents. Separate multiple levels with a comma. Example: include headings 3, 4 and 5 but exclude the others with <code>heading_levels="3,4,5"</code></li>
+			<li><strong>label</strong>: <?php _e('text, title of the table of contents', 'toc+'); ?></li>
+			<li><strong>no_label</strong>: <?php _e('true/false, shows or hides the title', 'toc+'); ?></li>
+			<li><strong>wrapping</strong>: <?php _e('text, either "left" or "right"', 'toc+'); ?></li>
+			<li><strong>heading_levels</strong>: <?php _e('numbers, this lets you select the heading levels you want included in the table of contents. Separate multiple levels with a comma. Example: include headings 3, 4 and 5 but exclude the others with', 'toc+'); ?> <code>heading_levels="3,4,5"</code></li>
 		</ul>
 	</td>
 </tr>
 <tr>
 	<td>[no_toc]</td>
-	<td>Allows you to disable the table of contents for the current post, page, or custom post type.</td>
+	<td><?php _e('Allows you to disable the table of contents for the current post, page, or custom post type.', 'toc+'); ?></td>
 	<td>&nbsp;</td>
 </tr>
 <tr>
 	<td>[sitemap]</td>
-	<td>Produces a listing of all pages and categories for your site. You can use this on any post, page or even in a text widget.</td>
+	<td><?php _e('Produces a listing of all pages and categories for your site. You can use this on any post, page or even in a text widget.', 'toc+'); ?></td>
 	<td>&nbsp;</td>
 </tr>
 <tr>
 	<td>[sitemap_pages]</td>
-	<td>Lets you print out a listing of only pages.</td>
+	<td><?php _e('Lets you print out a listing of only pages.', 'toc+'); ?></td>
 	<td>
 		<ul>
-			<li><strong>heading</strong>: number between 1 and 6, defines which html heading to use</li>
-			<li><strong>label</strong>: text, title of the list</li>
-			<li><strong>no_label</strong>: true/false, shows or hides the list heading</li>
-			<li><strong>exclude</strong>: IDs of the pages or categories you wish to exclude</li>
+			<li><strong>heading</strong>: <?php _e('number between 1 and 6, defines which html heading to use', 'toc+'); ?></li>
+			<li><strong>label</strong>: <?php _e('text, title of the list', 'toc+'); ?></li>
+			<li><strong>no_label</strong>: <?php _e('true/false, shows or hides the list heading', 'toc+'); ?></li>
+			<li><strong>exclude</strong>: <?php _e('IDs of the pages or categories you wish to exclude', 'toc+'); ?></li>
 		</ul>
 	</td>
 </tr>
 <tr>
 	<td>[sitemap_categories]</td>
-	<td>Similar to [sitemap_pages] but for categories.</td>
+	<td><?php _e('Similar to', 'toc+'); ?> [sitemap_pages] <?php _e('but for categories.', 'toc+'); ?></td>
 	<td>&nbsp;</td>
 </tr>
 </tbody>
 </table>
 
-<h3>I have another question...</h3>
-<p>Visit the <a href="http://dublue.com/plugins/toc/">plugin homepage</a> to ask your question - who knows, maybe your question has already been answered. I'd really like to hear your suggestions if you have any.</p>
+<h3><?php _e('I have another question...', 'toc+'); ?></h3>
+<p><?php _e('Visit the', 'toc+'); ?> <a href="http://dublue.com/plugins/toc/"><?php _e('plugin homepage', 'toc+'); ?></a> <?php _e("to ask your question - who knows, maybe your question has already been answered. I'd really like to hear your suggestions if you have any.", 'toc+'); ?></p>
 
 	</div>
 </div>
@@ -1396,7 +1396,7 @@ if ( !class_exists( 'toc_widget' ) ) :
 		{
 			$widget_options = array( 
 				'classname' => 'toc_widget', 
-				'description' => 'Display the table of contents in the sidebar with this widget' 
+				'description' => __('Display the table of contents in the sidebar with this widget', 'toc+') 
 			);
 			$control_options = array( 
 				'width' => 250, 
@@ -1481,13 +1481,13 @@ if ( !class_exists( 'toc_widget' ) ) :
 
 ?>
 			<p>
-				<label for="<?php echo $this->get_field_id( 'title' ); ?>">Title:</label>
+				<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e('Title', 'toc+'); ?>:</label>
 				<input type="text" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo $instance['title']; ?>" style="width:100%;" />
 			</p>
 
 			<p>
 				<input class="checkbox" type="checkbox" <?php checked( $toc_options['show_toc_in_widget_only'], 1 ); ?> id="<?php echo $this->get_field_id( 'hide_inline' ); ?>" name="<?php echo $this->get_field_name( 'hide_inline' ); ?>" value="1" /> 
-				<label for="<?php echo $this->get_field_id( 'hide_inline' ); ?>"> <?php _e('Show the table of contents only in the sidebar'); ?></label>
+				<label for="<?php echo $this->get_field_id( 'hide_inline' ); ?>"> <?php _e('Show the table of contents only in the sidebar', 'toc+'); ?></label>
 			</p>
 <?php
 		}
