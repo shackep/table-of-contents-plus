@@ -23,6 +23,10 @@ Includes an administration options panel where you can customise settings like d
 
 Custom post types are supported, however, auto insertion works only when the_content() has been used by the custom post type.  Each post type will appear in the options panel, so enable the ones you want.
 
+= Available Languages =
+* Australian English (default)
+* Simplified Chinese - [icedream](http://www.tesfans.org/)
+
 If you have questions or suggestions, please place them at [http://dublue.com/plugins/toc/](http://dublue.com/plugins/toc/)
 
 
@@ -76,6 +80,13 @@ Same as `[sitemap_pages]` but for categories.
 
 
 == Changelog ==
+
+= =
+* Released:
+* Added Simplified Chinese translation thanks to [icedream](http://www.tesfans.org/)
+* Make more translatable by adding a translation POT file.  Translations welcome!
+* Adjust multibyte string detection as reported by [johnnyvaughan](http://wordpress.org/support/topic/plugin-table-of-contents-plus-multibyte-string-detetction)
+* Fixed: -2 appearing in links when using the TOC+ widget.  Thanks to [Arturo](http://dublue.com/plugins/toc/comment-page-3/#comment-3337) for raising it.
 
 = 1207 =
 * Released: 23 July 2012
