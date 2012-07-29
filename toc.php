@@ -750,7 +750,7 @@ if ( !class_exists( 'toc' ) ) :
 		<th><label for="fragment_prefix"><?php _e('Default anchor prefix', 'toc+'); ?></label></th>
 		<td>
 			<input type="text" class="regular-text" value="<?php echo htmlentities( $this->options['fragment_prefix'] ); ?>" id="fragment_prefix" name="fragment_prefix" /><br />
-			<label for="fragment_prefix"><?php _e('Anchor targets are restricted to alphanumeric characters as per HTML specification (see readme for more detail). The default anchor prefix will be used when no characters qualify. When left blank, a number will be used instead.'); ?><br />
+			<label for="fragment_prefix"><?php _e('Anchor targets are restricted to alphanumeric characters as per HTML specification (see readme for more detail). The default anchor prefix will be used when no characters qualify. When left blank, a number will be used instead.', 'toc+'); ?><br />
 			<?php _e('This option normally applies to content written in character sets other than ASCII.', 'toc+'); ?><br />
 			<span class="description"><?php _e('Eg: i, toc_index, index, _', 'toc+'); ?></span></label>
 		</td>
@@ -831,7 +831,7 @@ if ( !class_exists( 'toc' ) ) :
 </ol>
 	
 <h3><?php _e('How do I stop the table of contents from appearing on a single page?', 'toc+'); ?></h3>
-<p><?php _e('Place the following', 'toc+'); ?> <code>[no_toc]</code> <?php _e('anywhere on the page to suppress the table of contents. This is known as a shortcode and works for posts, pages and custom post types that make use of', 'toc+'); ?> the_content().</p>
+<p><?php _e('Place the following', 'toc+'); ?> <code>[no_toc]</code> <?php _e('anywhere on the page to suppress the table of contents. This is known as a shortcode and works for posts, pages and custom post types that make use of the_content()', 'toc+'); ?></p>
 
 <h3><?php _e("I've set wrapping to left or right but the headings don't wrap around the table of contents", 'toc+'); ?></h3>
 <p><?php _e('This normally occurs when there is a CSS clear directive in or around the heading specified by the theme author. This directive tells the user agent to reset the previous wrapping specifications.', 'toc+'); ?></p>
@@ -1156,7 +1156,7 @@ div#toc_container ul.toc_list a:visited {
 		{
 			if ( is_array($find) && is_array($replace) && $string ) {
 				// check if multibyte strings are supported
-				if ( function_exists( 'mb_substr' ) ) {
+				if ( function_exists( 'mb_strpos' ) ) {
 					for ($i = 0; $i < count($find); $i++) {
 						$string = 
 							mb_substr( $string, 0, mb_strpos($string, $find[$i]) ) .	// everything befor $find
@@ -1195,6 +1195,11 @@ div#toc_container ul.toc_list a:visited {
 			$matches = array();
 			$anchor = '';
 			$items = false;
+			
+			// reset the internal collision collection as the_content may have been triggered elsewhere
+			// eg by themes or other plugins that need to read in content such as metadata fields in
+			// the head html tag, or to provide descriptions to twitter/facebook
+			$this->collision_collector = array();
 			
 			if ( is_array($find) && is_array($replace) && $content ) {
 				// get all headings
@@ -1282,11 +1287,6 @@ div#toc_container ul.toc_list a:visited {
 			$items = $css_classes = $anchor = '';
 			$custom_toc_position = strpos($content, '<!--TOC-->');
 			$find = $replace = array();
-			
-			// reset the internal collision collection as the_content may have been triggered elsewhere
-			// eg by themes or other plugins that need to read in content such as metadata fields in
-			// the head html tag, or to provide descriptions to twitter/facebook
-			$this->collision_collector = array();
 
 			if ( $this->is_eligible($custom_toc_position) ) {
 				
