@@ -5,7 +5,7 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1207
+Version: 		1208
 License:		GPL2
 */
 
@@ -109,6 +109,7 @@ if ( !class_exists( 'toc' ) ) :
 				'custom_links_visited_colour' => TOC_DEFAULT_LINKS_VISITED_COLOUR,
 				'bullet_spacing' => false,
 				'include_homepage' => false,
+				'exclude_css' => false,
 				'heading_levels' => array('1', '2', '3', '4', '5', '6'),
 				'sitemap_show_page_listing' => true,
 				'sitemap_show_category_listing' => true,
@@ -448,6 +449,7 @@ if ( !class_exists( 'toc' ) ) :
 				'custom_links_hover_colour' => $custom_links_hover_colour,
 				'bullet_spacing' => (isset($_POST['bullet_spacing']) && $_POST['bullet_spacing']) ? true : false,
 				'include_homepage' => (isset($_POST['include_homepage']) && $_POST['include_homepage']) ? true : false,
+				'exclude_css' => (isset($_POST['exclude_css']) && $_POST['exclude_css']) ? true : false,
 				'heading_levels' => @(array)$_POST['heading_levels'],
 				'sitemap_show_page_listing' => (isset($_POST['sitemap_show_page_listing']) && $_POST['sitemap_show_page_listing']) ? true : false,
 				'sitemap_show_category_listing' => (isset($_POST['sitemap_show_category_listing']) && $_POST['sitemap_show_category_listing']) ? true : false,
@@ -726,6 +728,10 @@ if ( !class_exists( 'toc' ) ) :
 		<td><input type="checkbox" value="1" id="include_homepage" name="include_homepage"<?php if ( $this->options['include_homepage'] ) echo ' checked="checked"'; ?> /><label for="include_homepage"> <?php _e('Show the table of contents for qualifying items on the homepage', 'toc+'); ?></label></td>
 	</tr>
 	<tr>
+		<th><label for="exclude_css"><?php _e('Exclude CSS file', 'toc+'); ?></label></th>
+		<td><input type="checkbox" value="1" id="exclude_css" name="exclude_css"<?php if ( $this->options['exclude_css'] ) echo ' checked="checked"'; ?> /><label for="exclude_css"> <?php _e("Prevent the loading of this plugin's CSS styles. When selected, the presentation options from above will also be ignored.", 'toc+'); ?></label></td>
+	</tr>
+	<tr>
 		<th><?php _e('Heading levels', 'toc+'); ?></th>
 		<td>
 		<p><?php _e('Include (or exclude) the following heading levels', 'toc+'); ?></p>
@@ -922,7 +928,8 @@ good heading&lt;/h3&gt;
 		
 		function public_styles()
 		{
-			wp_enqueue_style("toc-screen");
+			if ( !$this->options['exclude_css'] )
+				wp_enqueue_style("toc-screen");
 		}
 		
 							
@@ -936,7 +943,7 @@ good heading&lt;/h3&gt;
 ?>
 <style type="text/css">
 div#toc_container {
-<?php if ( $this->options['theme'] == TOC_THEME_CUSTOM ) : ?>
+<?php if ( $this->options['theme'] == TOC_THEME_CUSTOM && !$this->options['exclude_css'] ) : ?>
 	background: <?php echo $this->options['custom_background_colour']; ?>;
 	border: 1px solid <?php echo $this->options['custom_border_colour']; ?>;
 <?php
@@ -958,7 +965,10 @@ div#toc_container {
 	}
 ?>
 }
-<?php if ( $this->options['custom_title_colour'] != TOC_DEFAULT_TITLE_COLOUR ) : ?>
+<?php 
+	if ( !$this->options['exclude_css'] ) {
+		if ( $this->options['custom_title_colour'] != TOC_DEFAULT_TITLE_COLOUR ) : 
+?>
 div#toc_container p.toc_title {
 	color: <?php echo $this->options['custom_title_colour']; ?>;
 }
@@ -986,7 +996,10 @@ div#toc_container p.toc_title a:visited,
 div#toc_container ul.toc_list a:visited {
 	color: <?php echo $this->options['custom_links_visited_colour']; ?>;
 }
-<?php endif; ?>
+<?php 
+		endif; 
+	}
+?>
 </style>
 <?php
 			endif;
@@ -1242,7 +1255,7 @@ div#toc_container ul.toc_list a:visited {
 
 					// build a hierarchical toc?
 					// we could have tested for $items but that var can be quite large in some cases
-					if ( $this->options['show_heirarchy'] ) $items = $this->build_hierarchy( &$matches );
+					if ( $this->options['show_heirarchy'] ) $items = $this->build_hierarchy( $matches );
 				}
 			}
 			
@@ -1290,7 +1303,7 @@ div#toc_container ul.toc_list a:visited {
 
 			if ( $this->is_eligible($custom_toc_position) ) {
 				
-				$items = $this->extract_headings(&$find, &$replace, $content);
+				$items = $this->extract_headings($find, $replace, $content);
 
 				if ( $items ) {
 					// do we display the toc within the content or has the user opted
@@ -1425,7 +1438,7 @@ if ( !class_exists( 'toc_widget' ) ) :
 				
 				extract( $args );
 				
-				$items = $tic->extract_headings( &$find, &$replace, $post->post_content );
+				$items = $tic->extract_headings( $find, $replace, $post->post_content );
 				$title = apply_filters('widget_title', $instance['title'] );
 				$hide_inline = $toc_options['show_toc_in_widget_only'];
 				
