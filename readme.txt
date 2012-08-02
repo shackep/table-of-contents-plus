@@ -4,7 +4,7 @@ Donate link:
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.0
 Tested up to: 3.5
-Stable tag: 1207
+Stable tag: 1208
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,6 +26,8 @@ Custom post types are supported, however, auto insertion works only when the_con
 = Available Languages =
 * Australian English (default)
 * Simplified Chinese - [icedream](http://www.tesfans.org/)
+
+Translations are more than welcome.
 
 If you have questions or suggestions, please place them at [http://dublue.com/plugins/toc/](http://dublue.com/plugins/toc/)
 
@@ -80,6 +82,15 @@ Same as `[sitemap_pages]` but for categories.
 
 
 == Changelog ==
+
+= 1208 =
+* Released: 2 August 2012
+* New: advanced option to prevent the output of this plugin's CSS.  This option allows the site owner to incorporate styles in one of their existing style sheets.  Thanks to [Ivan](http://dublue.com/plugins/toc/comment-page-1/#comment-226) and [Swashata](http://dublue.com/plugins/toc/comment-page-3/#comment-3312) for suggesting it.
+* Added Simplified Chinese translation thanks to [icedream](http://www.tesfans.org/)
+* Make more translatable by adding a translation POT file in the languages folder.  Translations welcome!
+* Adjust multibyte string detection as reported by [johnnyvaughan](http://wordpress.org/support/topic/plugin-table-of-contents-plus-multibyte-string-detetction)
+* Support PHP 5.4.x installations.  Thanks to [Josh](http://dublue.com/plugins/toc/comment-page-3/#comment-3477) for raising it.
+* Fixed: -2 appearing in links when using the TOC+ widget.  Thanks to [Arturo](http://dublue.com/plugins/toc/comment-page-3/#comment-3337) for raising it.
 
 = 1207 =
 * Released: 23 July 2012
