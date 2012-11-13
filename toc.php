@@ -1217,7 +1217,7 @@ div#toc_container ul.toc_list a:visited {
 			if ( is_array($find) && is_array($replace) && $content ) {
 				// get all headings
 				// the html spec allows for a maximum of 6 heading depths
-				if ( preg_match_all('/(<h([1-6]{1})[^>]*>).*<\/h\2>/', $content, $matches, PREG_SET_ORDER) >= $this->options['start'] ) {
+				if ( preg_match_all('/(<h([1-6]{1})[^>]*>).*<\/h\2>/uU', $content, $matches, PREG_SET_ORDER) >= $this->options['start'] ) {
 
 					// remove undesired headings (if any) as defined by heading_levels
 					if ( count($this->options['heading_levels']) != 6 ) {
