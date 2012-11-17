@@ -5,7 +5,7 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1208
+Version: 		1211
 License:		GPL2
 */
 
@@ -94,7 +94,8 @@ if ( !class_exists( 'toc' ) ) :
 				'visibility' => true,
 				'visibility_show' => 'show',
 				'visibility_hide' => 'hide',
-				'width' => '275px',
+				'visibility_hide_by_default' => false,
+				'width' => 'Auto',
 				'width_custom' => '275',
 				'width_custom_units' => 'px',
 				'wrapping' => TOC_WRAPPING_NONE,
@@ -111,6 +112,7 @@ if ( !class_exists( 'toc' ) ) :
 				'include_homepage' => false,
 				'exclude_css' => false,
 				'heading_levels' => array('1', '2', '3', '4', '5', '6'),
+				'restrict_path' => '',
 				'sitemap_show_page_listing' => true,
 				'sitemap_show_category_listing' => true,
 				'sitemap_heading_type' => 3,
@@ -269,18 +271,19 @@ if ( !class_exists( 'toc' ) ) :
 				'heading' => $this->options['sitemap_heading_type'],
 				'label' => htmlentities( $this->options['sitemap_pages'], ENT_COMPAT, 'UTF-8' ),
 				'no_label' => false,
-				'exclude' => ''
+				'exclude' => '',
+				'exclude_tree' => '',
 				), $atts )
 			);
-			
+
 			if ( $heading < 1 || $heading > 6 )		// h1 to h6 are valid
 				$heading = $this->options['sitemap_heading_type'];
-			
+
 			$html = '<div class="toc_sitemap">';
 			if ( !$no_label ) $html .= '<h' . $heading . ' class="toc_sitemap_pages">' . $label . '</h' . $heading . '>';
 			$html .=
 					'<ul class="toc_sitemap_pages_list">' .
-						wp_list_pages( array('title_li' => '', 'echo' => false, 'exclude' => $exclude ) ) .
+						wp_list_pages( array('title_li' => '', 'echo' => false, 'exclude' => $exclude, 'exclude_tree' => $exclude_tree ) ) .
 					'</ul>' .
 				'</div>'
 			;
@@ -293,9 +296,10 @@ if ( !class_exists( 'toc' ) ) :
 		{
 			extract( shortcode_atts( array(
 				'heading' => $this->options['sitemap_heading_type'],
-				'label' => htmlentities( $this->options['sitemap_pages'], ENT_COMPAT, 'UTF-8' ),
+				'label' => htmlentities( $this->options['sitemap_categories'], ENT_COMPAT, 'UTF-8' ),
 				'no_label' => false,
-				'exclude' => ''
+				'exclude' => '',
+				'exclude_tree' => '',
 				), $atts )
 			);
 			
@@ -306,7 +310,7 @@ if ( !class_exists( 'toc' ) ) :
 			if ( !$no_label ) $html .= '<h' . $heading . ' class="toc_sitemap_categories">' . $label . '</h' . $heading . '>';
 			$html .=
 					'<ul class="toc_sitemap_categories_list">' .
-						wp_list_categories( array('title_li' => '', 'echo' => false, 'exclude' => $exclude ) ) .
+						wp_list_categories( array('title_li' => '', 'echo' => false, 'exclude' => $exclude, 'exclude_tree' => $exclude_tree ) ) .
 					'</ul>' .
 				'</div>'
 			;
@@ -319,8 +323,6 @@ if ( !class_exists( 'toc' ) ) :
 		{
 			load_plugin_textdomain( 'toc+', false, dirname(plugin_basename(__FILE__)) . '/languages/' );
 			wp_register_style( 'toc-screen', $this->path . '/screen.css' );
-			wp_register_script( 'smooth-scroll', $this->path . '/jquery.smooth-scroll.min.js', array('jquery') );
-			wp_register_script( 'cookie', $this->path . '/jquery.c.min.js', array('jquery') );
 			wp_register_script( 'toc-front', $this->path . '/front.js', array('jquery') );
 		}
 		
@@ -419,8 +421,15 @@ if ( !class_exists( 'toc' ) ) :
 			$custom_title_colour = $this->hex_value( trim($_POST['custom_title_colour']), TOC_DEFAULT_TITLE_COLOUR );
 			$custom_links_colour = $this->hex_value( trim($_POST['custom_links_colour']), TOC_DEFAULT_LINKS_COLOUR );
 			$custom_links_hover_colour = $this->hex_value( trim($_POST['custom_links_hover_colour']), TOC_DEFAULT_LINKS_HOVER_COLOUR );
-			//$custom_links_visited_colour = $this->hex_value( trim($_POST['custom_links_visited_colour']), TOC_DEFAULT_LINKS_VISITED_COLOUR );
-
+			$custom_links_visited_colour = $this->hex_value( trim($_POST['custom_links_visited_colour']), TOC_DEFAULT_LINKS_VISITED_COLOUR );
+			
+			if ( $restrict_path = trim($_POST['restrict_path']) ) {
+				if ( strpos($restrict_path, '/') !== 0 ) {
+					// restrict path did not start with a / so unset it
+					$restrict_path = '';
+				}
+			}
+			
 			$this->options = array(
 				'fragment_prefix' => trim($_POST['fragment_prefix']),
 				'position' => intval($_POST['position']),
@@ -435,6 +444,7 @@ if ( !class_exists( 'toc' ) ) :
 				'visibility' => (isset($_POST['visibility']) && $_POST['visibility']) ? true : false,
 				'visibility_show' => stripslashes( trim($_POST['visibility_show']) ),
 				'visibility_hide' => stripslashes( trim($_POST['visibility_hide']) ),
+				'visibility_hide_by_default' => (isset($_POST['visibility_hide_by_default']) && $_POST['visibility_hide_by_default']) ? true : false,
 				'width' => trim($_POST['width']),
 				'width_custom' => floatval($_POST['width_custom']),
 				'width_custom_units' => trim($_POST['width_custom_units']),
@@ -447,10 +457,12 @@ if ( !class_exists( 'toc' ) ) :
 				'custom_title_colour' => $custom_title_colour,
 				'custom_links_colour' => $custom_links_colour,
 				'custom_links_hover_colour' => $custom_links_hover_colour,
+				'custom_links_visited_colour' => $custom_links_visited_colour,
 				'bullet_spacing' => (isset($_POST['bullet_spacing']) && $_POST['bullet_spacing']) ? true : false,
 				'include_homepage' => (isset($_POST['include_homepage']) && $_POST['include_homepage']) ? true : false,
 				'exclude_css' => (isset($_POST['exclude_css']) && $_POST['exclude_css']) ? true : false,
 				'heading_levels' => @(array)$_POST['heading_levels'],
+				'restrict_path' => $restrict_path,
 				'sitemap_show_page_listing' => (isset($_POST['sitemap_show_page_listing']) && $_POST['sitemap_show_page_listing']) ? true : false,
 				'sitemap_show_category_listing' => (isset($_POST['sitemap_show_category_listing']) && $_POST['sitemap_show_category_listing']) ? true : false,
 				'sitemap_heading_type' => intval($_POST['sitemap_heading_type']),
@@ -515,7 +527,9 @@ if ( !class_exists( 'toc' ) ) :
 				echo '>' . $i . '</option>' . "\n";
 			}
 ?>
-		</select> <?php _e('or more headings are present', 'toc+'); ?>
+		</select> <?php 
+		/* translators: text follows drop down list of numbers */
+		_e('or more headings are present', 'toc+'); ?>
 	</td>
 </tr>
 <tr>
@@ -532,7 +546,9 @@ if ( !class_exists( 'toc' ) ) :
 ?>
 </tr>
 <tr>
-	<th><label for="show_heading_text"><?php _e('Heading text', 'toc+'); ?></label></th>
+	<th><label for="show_heading_text"><?php 
+	/* translators: this is the title of the table of contents */
+	_e('Heading text', 'toc+'); ?></label></th>
 	<td>
 		<input type="checkbox" value="1" id="show_heading_text" name="show_heading_text"<?php if ( $this->options['show_heading_text'] ) echo ' checked="checked"'; ?> /><label for="show_heading_text"> <?php _e('Show title on top of the table of contents', 'toc+'); ?></label><br />
 		<div class="more_toc_options<?php if ( !$this->options['show_heading_text'] ) echo ' disabled'; ?>">
@@ -546,15 +562,20 @@ if ( !class_exists( 'toc' ) ) :
 				<tr>
 					<th><label for="visibility_show"><?php _e('Show text', 'toc+'); ?></label></th>
 					<td><input type="text" class="" value="<?php echo htmlentities( $this->options['visibility_show'], ENT_COMPAT, 'UTF-8' ); ?>" id="visibility_show" name="visibility_show" />
-					<span class="description"><label for="visibility_show"><?php _e('Eg: show', 'toc+'); ?></label></span></td>
+					<span class="description"><label for="visibility_show"><?php 
+					/* translators: example text to display when you want to expand the table of contents */
+					_e('Eg: show', 'toc+'); ?></label></span></td>
 				</tr>
 				<tr>
 					<th><label for="visibility_hide"><?php _e('Hide text', 'toc+'); ?></label></th>
 					<td><input type="text" class="" value="<?php echo htmlentities( $this->options['visibility_hide'], ENT_COMPAT, 'UTF-8' ); ?>" id="visibility_hide" name="visibility_hide" />
-					<span class="description"><label for="visibility_hide"><?php _e('Eg: hide', 'toc+'); ?></label></span></td>
+					<span class="description"><label for="visibility_hide"><?php 
+					/* translators: example text to display when you want to collapse the table of contents */
+					_e('Eg: hide', 'toc+'); ?></label></span></td>
 				</tr>
 				</tbody>
 				</table>
+				<input type="checkbox" value="1" id="visibility_hide_by_default" name="visibility_hide_by_default"<?php if ( $this->options['visibility_hide_by_default'] ) echo ' checked="checked"'; ?> /><label for="visibility_hide_by_default"> <?php _e( 'Hide the table of contents initially', 'toc+'); ?></label>
 			</div>
 		</div>
 	</td>
@@ -585,7 +606,7 @@ if ( !class_exists( 'toc' ) ) :
 				<option value="200px"<?php if ( '200px' == $this->options['width'] ) echo ' selected="selected"'; ?>>200px</option>
 				<option value="225px"<?php if ( '225px' == $this->options['width'] ) echo ' selected="selected"'; ?>>225px</option>
 				<option value="250px"<?php if ( '250px' == $this->options['width'] ) echo ' selected="selected"'; ?>>250px</option>
-				<option value="275px"<?php if ( '275px' == $this->options['width'] ) echo ' selected="selected"'; ?>>275px <?php _e('(default)', 'toc+'); ?></option>
+				<option value="275px"<?php if ( '275px' == $this->options['width'] ) echo ' selected="selected"'; ?>>275px</option>
 				<option value="300px"<?php if ( '300px' == $this->options['width'] ) echo ' selected="selected"'; ?>>300px</option>
 				<option value="325px"<?php if ( '325px' == $this->options['width'] ) echo ' selected="selected"'; ?>>325px</option>
 				<option value="350px"<?php if ( '350px' == $this->options['width'] ) echo ' selected="selected"'; ?>>350px</option>
@@ -593,7 +614,7 @@ if ( !class_exists( 'toc' ) ) :
 				<option value="400px"<?php if ( '400px' == $this->options['width'] ) echo ' selected="selected"'; ?>>400px</option>
 			</optgroup>
 			<optgroup label="<?php _e('Relative', 'toc+'); ?>">
-				<option value="Auto"<?php if ( 'Auto' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('Auto', 'toc+'); ?></option>
+				<option value="Auto"<?php if ( 'Auto' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('Auto (default)', 'toc+'); ?></option>
 				<option value="25%"<?php if ( '25%' == $this->options['width'] ) echo ' selected="selected"'; ?>>25%</option>
 				<option value="33%"<?php if ( '33%' == $this->options['width'] ) echo ' selected="selected"'; ?>>33%</option>
 				<option value="50%"<?php if ( '50%' == $this->options['width'] ) echo ' selected="selected"'; ?>>50%</option>
@@ -601,12 +622,16 @@ if ( !class_exists( 'toc' ) ) :
 				<option value="75%"<?php if ( '75%' == $this->options['width'] ) echo ' selected="selected"'; ?>>75%</option>
 				<option value="100%"<?php if ( '100%' == $this->options['width'] ) echo ' selected="selected"'; ?>>100%</option>
 			</optgroup>
-			<optgroup label="<?php _e('Other', 'toc+'); ?>">
+			<optgroup label="<?php 
+			/* translators: other width */
+			_e('Other', 'toc+'); ?>">
 				<option value="User defined"<?php if ( 'User defined' == $this->options['width'] ) echo ' selected="selected"'; ?>><?php _e('User defined', 'toc+'); ?></option>
 			</optgroup>
 		</select>
 		<div class="more_toc_options<?php if ( 'User defined' != $this->options['width'] ) echo ' disabled'; ?>">
-			<label for="width_custom"><?php _e('Please enter a number and', 'toc+'); ?></label><label for="width_custom_units"> <?php _e('select its units, eg: 100px, 10em', 'toc+'); ?></label><br />
+			<label for="width_custom"><?php 
+			/* translators: ignore %s as it's some HTML label tags */
+			printf( __('Please enter a number and %s select its units, eg: 100px, 10em', 'toc+'), '</label><label for="width_custom_units">' ); ?></label><br />
 			<input type="text" class="regular-text" value="<?php echo floatval($this->options['width_custom']); ?>" id="width_custom" name="width_custom" />
 			<select name="width_custom_units" id="width_custom_units">
 				<option value="px"<?php if ( 'px' == $this->options['width_custom_units'] ) echo ' selected="selected"'; ?>>px</option>
@@ -638,7 +663,9 @@ if ( !class_exists( 'toc' ) ) :
 	</td>
 </tr>
 <tr>
-	<th><?php _e('Presentation', 'toc+'); ?></th>
+	<th><?php 
+	/* translators: appearance / colour / look and feel options */
+	_e('Presentation', 'toc+'); ?></th>
 	<td>
 		<div class="toc_theme_option">
 			<input type="radio" name="theme" id="theme_<?php echo TOC_THEME_GREY; ?>" value="<?php echo TOC_THEME_GREY; ?>"<?php if ( $this->options['theme'] == TOC_THEME_GREY ) echo ' checked="checked"'; ?> /><label for="theme_<?php echo TOC_THEME_GREY; ?>"> <?php _e('Grey (default)', 'toc+'); ?><br />
@@ -695,25 +722,17 @@ if ( !class_exists( 'toc' ) ) :
 				<th><label for="custom_links_hover_colour"><?php _e('Links (hover)', 'toc+'); ?></label></th>
 				<td><input type="text" class="custom_colour_option" value="<?php echo htmlentities( $this->options['custom_links_hover_colour'] ); ?>" id="custom_links_hover_colour" name="custom_links_hover_colour" /> <img src="<?php echo $this->path; ?>/images/colour-wheel.png" alt="" /></td>
 			</tr>
-<?php
-/* visited links not applied when smooth scrolling enabled, leaving out for now
 			<tr>
 				<th><label for="custom_links_visited_colour"><?php _e('Links (visited)', 'toc+'); ?></label></th>
 				<td><input type="text" class="custom_colour_option" value="<?php echo htmlentities( $this->options['custom_links_visited_colour'] ); ?>" id="custom_links_visited_colour" name="custom_links_visited_colour" /> <img src="<?php echo $this->path; ?>/images/colour-wheel.png" alt="" /></td>
 			</tr>
-*/
-?>
 			</tbody>
 			</table>
 			<div id="farbtastic_colour_wheel"></div>
 			<div class="clear"></div>
-			<p><?php _e('Leaving the value as', 'toc+'); echo ' <code>#</code> '; _e("will inherit your theme's styles", 'toc+'); ?></p>
+			<p><?php printf(__("Leaving the value as %s will inherit your theme's styles", 'toc+'), '<code>#</code>'); ?></p>
 		</div>
 	</td>
-</tr>
-<tr>
-	<th><label for="bullet_spacing"><?php _e('Preserve theme bullets', 'toc+'); ?></label></th>
-	<td><input type="checkbox" value="1" id="bullet_spacing" name="bullet_spacing"<?php if ( $this->options['bullet_spacing'] ) echo ' checked="checked"'; ?> /><label for="bullet_spacing"> <?php _e('If your theme includes background images for unordered list elements, enable this to support them', 'toc+'); ?></label></td>
 </tr>
 </tbody>
 </table>
@@ -732,9 +751,13 @@ if ( !class_exists( 'toc' ) ) :
 		<td><input type="checkbox" value="1" id="exclude_css" name="exclude_css"<?php if ( $this->options['exclude_css'] ) echo ' checked="checked"'; ?> /><label for="exclude_css"> <?php _e("Prevent the loading of this plugin's CSS styles. When selected, the presentation options from above will also be ignored.", 'toc+'); ?></label></td>
 	</tr>
 	<tr>
+		<th><label for="bullet_spacing"><?php _e('Preserve theme bullets', 'toc+'); ?></label></th>
+		<td><input type="checkbox" value="1" id="bullet_spacing" name="bullet_spacing"<?php if ( $this->options['bullet_spacing'] ) echo ' checked="checked"'; ?> /><label for="bullet_spacing"> <?php _e('If your theme includes background images for unordered list elements, enable this to support them', 'toc+'); ?></label></td>
+	</tr>
+	<tr>
 		<th><?php _e('Heading levels', 'toc+'); ?></th>
 		<td>
-		<p><?php _e('Include (or exclude) the following heading levels', 'toc+'); ?></p>
+		<p><?php _e('Include the following heading levels. Deselecting a heading will exclude it.', 'toc+'); ?></p>
 <?php
 			// show heading 1 to 6 options
 			for ($i = 1; $i <= 6; $i++) {
@@ -753,19 +776,33 @@ if ( !class_exists( 'toc' ) ) :
 		</td>
 	</tr>
 	<tr>
+		<th><label for="restrict_path"><?php _e('Restrict path', 'toc+'); ?></label></th>
+		<td>
+			<input type="text" class="regular-text" value="<?php echo htmlentities( $this->options['restrict_path'] ); ?>" id="restrict_path" name="restrict_path" /><br />
+			<label for="restrict_path"><?php _e('Restrict generation of the table of contents to pages that match the required path. This path is from the root of your site and always begins with a forward slash.', 'toc+'); ?><br />
+			<span class="description"><?php 
+			/* translators: example URL path restriction */
+			_e('Eg: /wiki/, /corporate/annual-reports/', 'toc+'); ?></span></label>
+		</td>
+	</tr>
+	<tr>
 		<th><label for="fragment_prefix"><?php _e('Default anchor prefix', 'toc+'); ?></label></th>
 		<td>
 			<input type="text" class="regular-text" value="<?php echo htmlentities( $this->options['fragment_prefix'] ); ?>" id="fragment_prefix" name="fragment_prefix" /><br />
 			<label for="fragment_prefix"><?php _e('Anchor targets are restricted to alphanumeric characters as per HTML specification (see readme for more detail). The default anchor prefix will be used when no characters qualify. When left blank, a number will be used instead.', 'toc+'); ?><br />
 			<?php _e('This option normally applies to content written in character sets other than ASCII.', 'toc+'); ?><br />
-			<span class="description"><?php _e('Eg: i, toc_index, index, _', 'toc+'); ?></span></label>
+			<span class="description"><?php 
+			/* translators: example anchor prefixes when no ascii characters match */
+			_e('Eg: i, toc_index, index, _', 'toc+'); ?></span></label>
 		</td>
 	</tr>
 	</tbody>
 	</table>
 
-	<h4><?php _e('Usage', 'toc+'); ?></h4>
-	<p><?php _e('If you would like to fully customise the position of the table of contents, you can use the', 'toc+'); ?> <code>[toc]</code> <?php _e('shortcode by placing it at the desired position of your post, page or custom post type. This method allows you to generate the table of contents despite having auto insertion disabled for its content type. Please visit the help tab for further information about this shortcode.', 'toc+'); ?></p>
+	<h4><?php 
+	/* translators: advanced usage */
+	_e('Usage', 'toc+'); ?></h4>
+	<p><?php printf(__('If you would like to fully customise the position of the table of contents, you can use the %s shortcode by placing it at the desired position of your post, page or custom post type. This method allows you to generate the table of contents despite having auto insertion disabled for its content type. Please visit the help tab for further information about this shortcode.', 'toc+'), '<code>[toc]</code>'); ?></p>
 </div>
 
 
@@ -773,7 +810,7 @@ if ( !class_exists( 'toc' ) ) :
 	<div id="tab2" class="tab_content">
 	
 
-<p><?php _e('At its simplest, placing', 'toc+'); ?> <code>[sitemap]</code> <?php _e('into a page will automatically create a sitemap of all pages and categories. This also works in a text widget.', 'toc+'); ?></p>
+<p><?php printf(__('At its simplest, placing %s into a page will automatically create a sitemap of all pages and categories. This also works in a text widget.', 'toc+'), '<code>[sitemap]</code>'); ?></p>
 <table class="form-table">
 <tbody>
 <tr>
@@ -786,7 +823,9 @@ if ( !class_exists( 'toc' ) ) :
 </tr>
 <tr>
 	<th><label for="sitemap_heading_type"><?php _e('Heading type', 'toc+'); ?></label></th>
-	<td><label for="sitemap_heading_type"><?php _e('Use', 'toc+'); ?> h</label><select name="sitemap_heading_type" id="sitemap_heading_type">
+	<td><label for="sitemap_heading_type"><?php 
+	/* translators: the full line is supposed to read - Use [1-6 drop down list] to print out the titles */
+	_e('Use', 'toc+'); ?> h</label><select name="sitemap_heading_type" id="sitemap_heading_type">
 <?php
 			// h1 to h6
 			for ($i = 1; $i <= 6; $i++) {
@@ -795,7 +834,9 @@ if ( !class_exists( 'toc' ) ) :
 				echo '>' . $i . '</option>' . "\n";
 			}
 ?>
-		</select> <?php _e('to print out the titles', 'toc+'); ?>
+		</select> <?php 
+		/* translators: the full line is supposed to read - Use [h1-h6 drop down list] to print out the titles */
+		_e('to print out the titles', 'toc+'); ?>
 	</td>
 </tr>
 <tr>
@@ -815,11 +856,11 @@ if ( !class_exists( 'toc' ) ) :
 
 <h3><?php _e('Advanced usage', 'toc+'); ?> <span class="show_hide">(<a href="#sitemap_advanced_usage"><?php _e('show', 'toc+'); ?></a>)</span></h3>
 <div id="sitemap_advanced_usage">
-	<p><code>[sitemap_pages]</code> <?php _e('lets you print out a listing of only pages. Similarly', 'toc+'); ?>, <code>[sitemap_categories]</code> <?php _e('can be used to print out a category listing. They both can accept a number of attributes so visit the help tab for more information.', 'toc+'); ?></p>
+	<p><code>[sitemap_pages]</code> <?php printf(__('lets you print out a listing of only pages. Similarly %s can be used to print out a category listing. They both can accept a number of attributes so visit the help tab for more information.', 'toc+'), '<code>[sitemap_categories]</code>'); ?></p>
 	<p><?php _e('Examples', 'toc+'); ?></p>
 	<ol>
 		<li><code>[sitemap_categories no_label="true"]</code> <?php _e('hides the heading from a category listing', 'toc+'); ?></li>
-		<li><code>[sitemap_pages heading="6" label="This is an awesome listing" exclude="1,15"]</code> <?php _e('Uses h6 to display', 'toc+'); ?> <em>This is an awesome listing</em> <?php _e('on a page listing excluding pages with IDs 1 and 15.', 'toc+'); ?></li>
+		<li><code>[sitemap_pages heading="6" label="This is an awesome listing" exclude="1,15"]</code> <?php printf(__('Uses h6 to display %s on a page listing excluding pages with IDs 1 and 15', 'toc+'), '<em>This is an awesome listing</em>'); ?></li>
 	</ol>
 </div>
 
@@ -832,30 +873,31 @@ if ( !class_exists( 'toc' ) ) :
 <ol>
 	<li><?php _e("In most cases, the post, page or custom post type has less than the minimum number of headings. By default, this is set to four so make sure you have at least four headings within your content. If you want to change this value, you can find it under 'Main Options' &gt; 'Show when'.", 'toc+'); ?></li>
 	<li><?php _e('Is auto insertion enabled for your content type? By default, only pages are enabled.', 'toc+'); ?></li>
-	<li><?php _e('Have you got', 'toc+'); ?> <code>[no_toc]</code> <?php _e('somewhere within the content? This will disable the index for the current post, page or custom post type.', 'toc+'); ?></li>
-	<li><?php _e('If you are using the TOC+ widget, check if you have the', 'toc+'); ?> <em>"<?php _e('Show the table of contents only in the sidebar', 'toc+'); ?>"</em> <?php _e('enabled as this will limit its display to only the sidebar. You can check by going into Appearance &gt; Widgets.', 'toc+'); ?></li>
+	<li><?php _e('Have you got <code>[no_toc]</code> somewhere within the content? This will disable the index for the current post, page or custom post type.', 'toc+'); ?></li>
+	<li><?php _e('If you are using the TOC+ widget, check if you have the <em>"Show the table of contents only in the sidebar"</em> enabled as this will limit its display to only the sidebar. You can check by going into Appearance &gt; Widgets.', 'toc+'); ?></li>
+	<li><?php _e('You may have restricted generation to a URL path match. The setting can be found in the advanced section under Main Options.', 'toc+'); ?></li>
 </ol>
 	
 <h3><?php _e('How do I stop the table of contents from appearing on a single page?', 'toc+'); ?></h3>
-<p><?php _e('Place the following', 'toc+'); ?> <code>[no_toc]</code> <?php _e('anywhere on the page to suppress the table of contents. This is known as a shortcode and works for posts, pages and custom post types that make use of the_content()', 'toc+'); ?></p>
+<p><?php _e('Place the following <code>[no_toc]</code> anywhere on the page to suppress the table of contents. This is known as a shortcode and works for posts, pages and custom post types that make use of the_content()', 'toc+'); ?></p>
 
 <h3><?php _e("I've set wrapping to left or right but the headings don't wrap around the table of contents", 'toc+'); ?></h3>
-<p><?php _e('This normally occurs when there is a CSS clear directive in or around the heading specified by the theme author. This directive tells the user agent to reset the previous wrapping specifications.', 'toc+'); ?></p>
-<p><?php _e("You can adjust your theme's CSS or try moving the table of contents position to the top of the page. If you didn't build your theme, I'd highly suggest you try the", 'toc+'); ?> <a href="http://wordpress.org/extend/plugins/safecss/">Custom CSS plugin</a> <?php _e('if you wish to make CSS changes.', 'toc+'); ?></p>
+<p><?php _e('This normally occurs when there is a CSS clear directive in or around the heading originating from the theme (Twenty Eleven and Twenty Twelve are two themes which do this). This directive tells the user agent to reset the previous wrapping specifications.', 'toc+'); ?></p>
+<p><?php printf(__("You can adjust your theme's CSS or try moving the table of contents position to the top of the page. If you didn't build your theme, I'd highly suggest you try the %s if you wish to make CSS changes.", 'toc+'), '<a href="http://wordpress.org/extend/plugins/safecss/">Custom CSS plugin</a>'); ?></p>
+<p><?php 
+/* translators: CSS code follows after this line */
+_e('Try adding the following CSS to allow the wrapping to occur around the table of contents:', 'toc+'); ?></p>
+<code>
+h1, h2, h3, h4, h5, h6 { clear: none; }
+</code>
 
-<h3><?php _e('Why are some headings not included in the table of contents?', 'toc+'); ?></h3>
-<p><?php _e("First, make sure the title text that isn't appearing in the table of contents is actually marked up as a heading (eg heading 1 through to 6).  After verifying that it really is a heading, make sure that there are no linebreaks or enters from the start to the end of the heading HTML tags.  Eg, it should not be like the following:", 'toc+'); ?></p>
-<pre>
-&lt;h3&gt;This is
-a really
-good heading&lt;/h3&gt;
-</pre>
-<p><?php _e('Rather, it should be something like:', 'toc+'); ?></p>
-<pre>
-&lt;h3&gt;This is a really good heading&lt;/h3&gt;
-</pre>
+<h3><?php _e('How do I include the name of the page in the table of contents title?', 'toc+'); ?></h3>
+<p><?php _e("As the title of the page changes depending on the page you're viewing, you can use the following special variable to automatically insert the title of the page into the table of contents heading:", 'toc+'); ?></p>
+<code>%PAGE_NAME%</code>
+<p><?php _e('You can use it as is or place text either side of the variable.', 'toc+'); ?></p>
+<p><?php _e('As an example: if your page is named <em>Great Expectations</em> and your table of contents title is set to <em>Contents for %PAGE_NAME%</em>, the final title would read <em>Contents for Great Expectations</em>', 'toc+'); ?></p>
 
-<h3><?php _e('The sitemap uses a strange font disimilar to the rest of the site', 'toc+'); ?></h3>
+<h3><?php _e('The sitemap uses a strange font dissimilar to the rest of the site', 'toc+'); ?></h3>
 <p><?php _e("No extra styles are created for the sitemap, instead it inherits any styles you used when adding the shortcode. If you copy and pasted, you probably also copied the 'code' tags surrounding it so remove them if this is the case.", 'toc+'); ?></p>
 <p><?php _e('In most cases, try to have the shortcode on its own line with nothing before or after the square brackets.', 'toc+'); ?></p>
 
@@ -901,19 +943,20 @@ good heading&lt;/h3&gt;
 			<li><strong>label</strong>: <?php _e('text, title of the list', 'toc+'); ?></li>
 			<li><strong>no_label</strong>: <?php _e('true/false, shows or hides the list heading', 'toc+'); ?></li>
 			<li><strong>exclude</strong>: <?php _e('IDs of the pages or categories you wish to exclude', 'toc+'); ?></li>
+			<li><strong>exclude_tree</strong>: <?php _e('ID of the page or category you wish to exclude including its all descendants', 'toc+'); ?></li>
 		</ul>
 	</td>
 </tr>
 <tr>
 	<td>[sitemap_categories]</td>
-	<td><?php _e('Similar to', 'toc+'); ?> [sitemap_pages] <?php _e('but for categories.', 'toc+'); ?></td>
+	<td><?php _e('Similar to [sitemap_pages] but for categories.', 'toc+'); ?></td>
 	<td>&nbsp;</td>
 </tr>
 </tbody>
 </table>
 
 <h3><?php _e('I have another question...', 'toc+'); ?></h3>
-<p><?php _e('Visit the', 'toc+'); ?> <a href="http://dublue.com/plugins/toc/"><?php _e('plugin homepage', 'toc+'); ?></a> <?php _e("to ask your question - who knows, maybe your question has already been answered. I'd really like to hear your suggestions if you have any.", 'toc+'); ?></p>
+<p><?php printf(__('Visit the %1$splugin homepage%2$s to ask your question - who knows, maybe your question has already been answered. I\'d really like to hear your suggestions if you have any.', 'toc+'), '<a href="http://dublue.com/plugins/toc/">', '</a>'); ?></p>
 
 	</div>
 </div>
@@ -937,7 +980,7 @@ good heading&lt;/h3&gt;
 		{
 			if ( 
 				$this->options['theme'] == TOC_THEME_CUSTOM || 
-				$this->options['width'] != '275px' || 
+				$this->options['width'] != 'Auto' || 
 				( '95%' != $this->options['font_size'] . $this->options['font_size_units'] )
 			) :
 ?>
@@ -949,15 +992,13 @@ div#toc_container {
 <?php
 	endif;
 	
-	if ( $this->options['width'] != '275px' ) {
+	if ( $this->options['width'] != 'Auto' ) {
 		echo '	width: ';
 		if ( $this->options['width'] != 'User defined' )
 			echo $this->options['width'];
 		else
 			echo $this->options['width_custom'] . $this->options['width_custom_units'];
 		echo ";\n";
-		if ( $this->options['width'] == 'Auto' )
-			echo '	display: table;' . "\n";
 	}
 	
 	if ( '95%' != $this->options['font_size'] . $this->options['font_size_units'] ) {
@@ -1015,13 +1056,13 @@ div#toc_container ul.toc_list a:visited {
 		{
 			$js_vars = array();
 			
-			if ( $this->options['smooth_scroll'] ) wp_enqueue_script( 'smooth-scroll' );
+			if ( $this->options['smooth_scroll'] ) $js_vars['smooth_scroll'] = true;
 			wp_enqueue_script( 'toc-front' );
 			if ( $this->options['show_heading_text'] && $this->options['visibility'] ) {
 				$width = ( $this->options['width'] != 'User defined' ) ? $this->options['width'] : $this->options['width_custom'] . $this->options['width_custom_units'];
-				wp_enqueue_script( 'cookie' );
 				$js_vars['visibility_show'] = esc_js($this->options['visibility_show']);
 				$js_vars['visibility_hide'] = esc_js($this->options['visibility_hide']);
+				if ( $this->options['visibility_hide_by_default'] ) $js_vars['visibility_hide_by_default'] = true;
 				$js_vars['width'] = esc_js($width);
 			}
 			if ( $this->options['smooth_scroll_offset'] != TOC_SMOOTH_SCROLL_OFFSET )
@@ -1046,6 +1087,9 @@ div#toc_container ul.toc_list a:visited {
 			
 			if ( $title ) {
 				$return = trim( strip_tags($title) );
+				
+				// replace newlines with spaces (eg when headings are split over multiple lines)
+				$return = str_replace( array("\r", "\n", "\n\r", "\r\n"), ' ', $return );
 				
 				// remove &amp;
 				$return = str_replace( '&amp;', '', $return );
@@ -1118,12 +1162,13 @@ div#toc_container ul.toc_list a:visited {
 					$html .= '<a href="#' . $this->url_anchor_target( $matches[$i][0] ) . '">';
 					if ( $this->options['ordered_list'] ) {
 						// attach leading numbers when lower in hierarchy
+						$html .= '<span class="toc_number toc_depth_' . ($current_depth - $numbered_items_min + 1) . '">';
 						for ($j = $numbered_items_min; $j < $current_depth; $j++) {
 							$number = ($numbered_items[$j]) ? $numbered_items[$j] : 0;
 							$html .= $number . '.';
 						}
 						
-						$html .= ($numbered_items[$current_depth] + 1) . ' ';
+						$html .= ($numbered_items[$current_depth] + 1) . '</span> ';
 						$numbered_items[$current_depth]++;
 					}
 					$html .= strip_tags($matches[$i][0]) . '</a>';
@@ -1286,8 +1331,16 @@ div#toc_container ul.toc_list a:visited {
 				if (
 					( in_array(get_post_type($post), $this->options['auto_insert_post_types']) && $this->show_toc && !is_search() && !is_archive() && !is_front_page() ) || 
 					( $this->options['include_homepage'] && is_front_page() )
-				)
-					return true;
+				) {
+					if ( $this->options['restrict_path'] ) {
+						if ( strpos($_SERVER['REQUEST_URI'], $this->options['restrict_path']) === 0 )
+							return true;
+						else
+							return false;
+					}
+					else
+						return true;
+				}
 				else
 					return false;
 			}
@@ -1365,7 +1418,11 @@ div#toc_container ul.toc_list a:visited {
 						
 						// add container, toc title and list items
 						$html = '<div id="toc_container" class="' . $css_classes . '">';
-						if ( $this->options['show_heading_text'] ) $html .= '<p class="toc_title">' . htmlentities( $this->options['heading_text'], ENT_COMPAT, 'UTF-8' ) . '</p>';
+						if ( $this->options['show_heading_text'] ) {
+							$toc_title = $this->options['heading_text'];
+							if ( strpos($toc_title, '%PAGE_TITLE%') !== false ) $toc_title = str_replace( '%PAGE_TITLE%', get_the_title(), $toc_title );
+							$html .= '<p class="toc_title">' . htmlentities( $toc_title, ENT_COMPAT, 'UTF-8' ) . '</p>';
+						}
 						$html .= '<ul class="toc_list">' . $items . '</ul></div>' . "\n";
 						
 						if ( $custom_toc_position !== false ) {
@@ -1440,6 +1497,7 @@ if ( !class_exists( 'toc_widget' ) ) :
 				
 				$items = $tic->extract_headings( $find, $replace, $post->post_content );
 				$title = apply_filters('widget_title', $instance['title'] );
+				if ( strpos($title, '%PAGE_TITLE%') !== false ) $title = str_replace( '%PAGE_TITLE%', get_the_title(), $title );
 				$hide_inline = $toc_options['show_toc_in_widget_only'];
 				
 				if ( $items ) {
