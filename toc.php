@@ -5,7 +5,7 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1211
+Version: 		1303
 License:		GPL2
 */
 
@@ -39,10 +39,11 @@ FOR CONSIDERATION:
 	- highlight target css
 */
 
-
+define( 'TOC_VERSION', '1303' );
 define( 'TOC_POSITION_BEFORE_FIRST_HEADING', 1 );
 define( 'TOC_POSITION_TOP', 2 );
 define( 'TOC_POSITION_BOTTOM', 3 );
+define( 'TOC_POSITION_AFTER_FIRST_HEADING', 4 );
 define( 'TOC_MIN_START', 2 );
 define( 'TOC_MAX_START', 10 );
 define( 'TOC_SMOOTH_SCROLL_OFFSET', 30 );
@@ -74,7 +75,7 @@ if ( !class_exists( 'toc' ) ) :
 		
 		function __construct()
 		{
-			$this->path = dirname( WP_PLUGIN_URL . '/' . plugin_basename( __FILE__ ) );
+			$this->path = plugins_url( '', __FILE__ );
 			$this->show_toc = true;
 			$this->exclude_post_types = array( 'attachment', 'revision', 'nav_menu_item', 'safecss' );
 			$this->collision_collector = array();
@@ -108,9 +109,12 @@ if ( !class_exists( 'toc' ) ) :
 				'custom_links_colour' => TOC_DEFAULT_LINKS_COLOUR,
 				'custom_links_hover_colour' => TOC_DEFAULT_LINKS_HOVER_COLOUR,
 				'custom_links_visited_colour' => TOC_DEFAULT_LINKS_VISITED_COLOUR,
+				'lowercase' => false,
+				'hyphenate' => false,
 				'bullet_spacing' => false,
 				'include_homepage' => false,
 				'exclude_css' => false,
+				'exclude' => '',
 				'heading_levels' => array('1', '2', '3', '4', '5', '6'),
 				'restrict_path' => '',
 				'sitemap_show_page_listing' => true,
@@ -122,10 +126,9 @@ if ( !class_exists( 'toc' ) ) :
 			);
 			$options = get_option( 'toc-options', $defaults );
 			$this->options = wp_parse_args( $options, $defaults );
-			
-			add_action( 'init', array(&$this, 'init') );
-			add_action( 'wp_print_styles', array(&$this, 'public_styles') );
-			add_action( 'template_redirect', array(&$this, 'template_redirect') );
+
+			add_action( 'plugins_loaded', array(&$this, 'plugins_loaded') );
+			add_action( 'wp_enqueue_scripts', array(&$this, 'wp_enqueue_scripts') );
 			add_action( 'wp_head', array(&$this, 'wp_head') );
 			add_action( 'admin_init', array(&$this, 'admin_init') );
 			add_action( 'admin_menu', array(&$this, 'admin_menu') );
@@ -140,6 +143,7 @@ if ( !class_exists( 'toc' ) ) :
 			add_shortcode( 'sitemap', array(&$this, 'shortcode_sitemap') );
 			add_shortcode( 'sitemap_pages', array(&$this, 'shortcode_sitemap_pages') );
 			add_shortcode( 'sitemap_categories', array(&$this, 'shortcode_sitemap_categories') );
+			add_shortcode( 'sitemap_posts', array(&$this, 'shortcode_sitemap_posts') );
 		}
 		
 		
@@ -181,7 +185,8 @@ if ( !class_exists( 'toc' ) ) :
 				'label' => $this->options['heading_text'],
 				'no_label' => false,
 				'wrapping' => $this->options['wrapping'],
-				'heading_levels' => $this->options['heading_levels']
+				'heading_levels' => $this->options['heading_levels'],
+				'exclude' => $this->options['exclude']
 				), $atts )
 			);
 			
@@ -201,7 +206,9 @@ if ( !class_exists( 'toc' ) ) :
 						// do nothing
 				}
 			}
-			
+
+			if ( $exclude ) $this->options['exclude'] = $exclude;
+
 			// if $heading_levels is an array, then it came from the global options
 			// and wasn't provided by per instance
 			if ( $heading_levels && !is_array($heading_levels) ) {
@@ -272,7 +279,7 @@ if ( !class_exists( 'toc' ) ) :
 				'label' => htmlentities( $this->options['sitemap_pages'], ENT_COMPAT, 'UTF-8' ),
 				'no_label' => false,
 				'exclude' => '',
-				'exclude_tree' => '',
+				'exclude_tree' => ''
 				), $atts )
 			);
 
@@ -299,7 +306,7 @@ if ( !class_exists( 'toc' ) ) :
 				'label' => htmlentities( $this->options['sitemap_categories'], ENT_COMPAT, 'UTF-8' ),
 				'no_label' => false,
 				'exclude' => '',
-				'exclude_tree' => '',
+				'exclude_tree' => ''
 				), $atts )
 			);
 			
@@ -319,11 +326,87 @@ if ( !class_exists( 'toc' ) ) :
 		}
 		
 		
-		function init()
+		function shortcode_sitemap_posts( $atts )
+		{
+			extract( shortcode_atts( array(
+				'order' => 'ASC',
+				'orderby' => 'title'
+				), $atts )
+			);
+						
+			$articles = new WP_Query(array(
+				'post_type' => 'post',
+				'post_status' => 'publish',
+				'order' => $order,
+				'orderby' => $orderby,
+				'posts_per_page' => -1
+			));
+			
+			$html = $letter = '';
+			
+			while ( $articles->have_posts() ) {
+				$articles->the_post();
+				$title = get_the_title();
+				
+				if ( $letter != strtolower($title[0]) ) {
+					if ( $letter ) $html .= '</ul></div>';
+					
+					$html .= '<div class="toc_sitemap_posts_section"><p class="toc_sitemap_posts_letter">' . strtolower($title[0]) . '</p><ul class="toc_sitemap_posts_list">';
+					$letter = strtolower($title[0]);
+				}
+
+				$html .= '<li><a href="' . get_permalink($articles->post->ID) . '">' . $title . '</a></li>';
+			}
+			
+			if ( $html ) $html .= '</div>';
+			
+			wp_reset_postdata();
+			
+			return $html;
+		}
+		
+		
+		/**
+		 * Register and load CSS and javascript files for frontend.
+		 */
+		function wp_enqueue_scripts()
+		{
+			$js_vars = array();
+			
+			
+			// register our CSS and scripts
+			wp_register_style( 'toc-screen', $this->path . '/screen.css', array(), TOC_VERSION );
+			wp_register_script( 'toc-front', $this->path . '/front.js', array('jquery'), TOC_VERSION, true );
+			
+			
+			// enqueue them!
+			if ( !$this->options['exclude_css'] ) wp_enqueue_style("toc-screen");
+			
+			if ( $this->options['smooth_scroll'] ) $js_vars['smooth_scroll'] = true;
+			wp_enqueue_script( 'toc-front' );
+			if ( $this->options['show_heading_text'] && $this->options['visibility'] ) {
+				$width = ( $this->options['width'] != 'User defined' ) ? $this->options['width'] : $this->options['width_custom'] . $this->options['width_custom_units'];
+				$js_vars['visibility_show'] = esc_js($this->options['visibility_show']);
+				$js_vars['visibility_hide'] = esc_js($this->options['visibility_hide']);
+				if ( $this->options['visibility_hide_by_default'] ) $js_vars['visibility_hide_by_default'] = true;
+				$js_vars['width'] = esc_js($width);
+			}
+			if ( $this->options['smooth_scroll_offset'] != TOC_SMOOTH_SCROLL_OFFSET )
+				$js_vars['smooth_scroll_offset'] = esc_js($this->options['smooth_scroll_offset']);
+			
+			if ( count($js_vars) > 0 ) {
+				wp_localize_script(
+					'toc-front',
+					'tocplus',
+					$js_vars
+				);
+			}
+		}
+		
+		
+		function plugins_loaded()
 		{
 			load_plugin_textdomain( 'toc+', false, dirname(plugin_basename(__FILE__)) . '/languages/' );
-			wp_register_style( 'toc-screen', $this->path . '/screen.css' );
-			wp_register_script( 'toc-front', $this->path . '/front.js', array('jquery') );
 		}
 		
 		
@@ -430,44 +513,50 @@ if ( !class_exists( 'toc' ) ) :
 				}
 			}
 			
-			$this->options = array(
-				'fragment_prefix' => trim($_POST['fragment_prefix']),
-				'position' => intval($_POST['position']),
-				'start' => intval($_POST['start']),
-				'show_heading_text' => (isset($_POST['show_heading_text']) && $_POST['show_heading_text']) ? true : false,
-				'heading_text' => stripslashes( trim($_POST['heading_text']) ),
-				'auto_insert_post_types' => @(array)$_POST['auto_insert_post_types'],
-				'show_heirarchy' => (isset($_POST['show_heirarchy']) && $_POST['show_heirarchy']) ? true : false,
-				'ordered_list' => (isset($_POST['ordered_list']) && $_POST['ordered_list']) ? true : false,
-				'smooth_scroll' => (isset($_POST['smooth_scroll']) && $_POST['smooth_scroll']) ? true : false,
-				'smooth_scroll_offset' => intval($_POST['smooth_scroll_offset']),
-				'visibility' => (isset($_POST['visibility']) && $_POST['visibility']) ? true : false,
-				'visibility_show' => stripslashes( trim($_POST['visibility_show']) ),
-				'visibility_hide' => stripslashes( trim($_POST['visibility_hide']) ),
-				'visibility_hide_by_default' => (isset($_POST['visibility_hide_by_default']) && $_POST['visibility_hide_by_default']) ? true : false,
-				'width' => trim($_POST['width']),
-				'width_custom' => floatval($_POST['width_custom']),
-				'width_custom_units' => trim($_POST['width_custom_units']),
-				'wrapping' => intval($_POST['wrapping']),
-				'font_size' => floatval($_POST['font_size']),
-				'font_size_units' => trim($_POST['font_size_units']),
-				'theme' => intval($_POST['theme']),
-				'custom_background_colour' => $custom_background_colour,
-				'custom_border_colour' => $custom_border_colour,
-				'custom_title_colour' => $custom_title_colour,
-				'custom_links_colour' => $custom_links_colour,
-				'custom_links_hover_colour' => $custom_links_hover_colour,
-				'custom_links_visited_colour' => $custom_links_visited_colour,
-				'bullet_spacing' => (isset($_POST['bullet_spacing']) && $_POST['bullet_spacing']) ? true : false,
-				'include_homepage' => (isset($_POST['include_homepage']) && $_POST['include_homepage']) ? true : false,
-				'exclude_css' => (isset($_POST['exclude_css']) && $_POST['exclude_css']) ? true : false,
-				'heading_levels' => @(array)$_POST['heading_levels'],
-				'restrict_path' => $restrict_path,
-				'sitemap_show_page_listing' => (isset($_POST['sitemap_show_page_listing']) && $_POST['sitemap_show_page_listing']) ? true : false,
-				'sitemap_show_category_listing' => (isset($_POST['sitemap_show_category_listing']) && $_POST['sitemap_show_category_listing']) ? true : false,
-				'sitemap_heading_type' => intval($_POST['sitemap_heading_type']),
-				'sitemap_pages' => stripslashes( trim($_POST['sitemap_pages']) ),
-				'sitemap_categories' => stripslashes( trim($_POST['sitemap_categories']) )
+			$this->options = array_merge(
+				$this->options,
+				array(
+					'fragment_prefix' => trim($_POST['fragment_prefix']),
+					'position' => intval($_POST['position']),
+					'start' => intval($_POST['start']),
+					'show_heading_text' => (isset($_POST['show_heading_text']) && $_POST['show_heading_text']) ? true : false,
+					'heading_text' => stripslashes( trim($_POST['heading_text']) ),
+					'auto_insert_post_types' => @(array)$_POST['auto_insert_post_types'],
+					'show_heirarchy' => (isset($_POST['show_heirarchy']) && $_POST['show_heirarchy']) ? true : false,
+					'ordered_list' => (isset($_POST['ordered_list']) && $_POST['ordered_list']) ? true : false,
+					'smooth_scroll' => (isset($_POST['smooth_scroll']) && $_POST['smooth_scroll']) ? true : false,
+					'smooth_scroll_offset' => intval($_POST['smooth_scroll_offset']),
+					'visibility' => (isset($_POST['visibility']) && $_POST['visibility']) ? true : false,
+					'visibility_show' => stripslashes( trim($_POST['visibility_show']) ),
+					'visibility_hide' => stripslashes( trim($_POST['visibility_hide']) ),
+					'visibility_hide_by_default' => (isset($_POST['visibility_hide_by_default']) && $_POST['visibility_hide_by_default']) ? true : false,
+					'width' => trim($_POST['width']),
+					'width_custom' => floatval($_POST['width_custom']),
+					'width_custom_units' => trim($_POST['width_custom_units']),
+					'wrapping' => intval($_POST['wrapping']),
+					'font_size' => floatval($_POST['font_size']),
+					'font_size_units' => trim($_POST['font_size_units']),
+					'theme' => intval($_POST['theme']),
+					'custom_background_colour' => $custom_background_colour,
+					'custom_border_colour' => $custom_border_colour,
+					'custom_title_colour' => $custom_title_colour,
+					'custom_links_colour' => $custom_links_colour,
+					'custom_links_hover_colour' => $custom_links_hover_colour,
+					'custom_links_visited_colour' => $custom_links_visited_colour,
+					'lowercase' => (isset($_POST['lowercase']) && $_POST['lowercase']) ? true : false,
+					'hyphenate' => (isset($_POST['hyphenate']) && $_POST['hyphenate']) ? true : false,
+					'bullet_spacing' => (isset($_POST['bullet_spacing']) && $_POST['bullet_spacing']) ? true : false,
+					'include_homepage' => (isset($_POST['include_homepage']) && $_POST['include_homepage']) ? true : false,
+					'exclude_css' => (isset($_POST['exclude_css']) && $_POST['exclude_css']) ? true : false,
+					'heading_levels' => @(array)$_POST['heading_levels'],
+					'exclude' => stripslashes( trim($_POST['exclude']) ),
+					'restrict_path' => $restrict_path,
+					'sitemap_show_page_listing' => (isset($_POST['sitemap_show_page_listing']) && $_POST['sitemap_show_page_listing']) ? true : false,
+					'sitemap_show_category_listing' => (isset($_POST['sitemap_show_category_listing']) && $_POST['sitemap_show_category_listing']) ? true : false,
+					'sitemap_heading_type' => intval($_POST['sitemap_heading_type']),
+					'sitemap_pages' => stripslashes( trim($_POST['sitemap_pages']) ),
+					'sitemap_categories' => stripslashes( trim($_POST['sitemap_categories']) )
+				)
 			);
 			
 			// update_option will return false if no changes were made
@@ -511,6 +600,7 @@ if ( !class_exists( 'toc' ) ) :
 	<td>
 		<select name="position" id="position">
 			<option value="<?php echo TOC_POSITION_BEFORE_FIRST_HEADING; ?>"<?php if ( TOC_POSITION_BEFORE_FIRST_HEADING == $this->options['position'] ) echo ' selected="selected"'; ?>><?php _e('Before first heading (default)', 'toc+'); ?></option>
+			<option value="<?php echo TOC_POSITION_AFTER_FIRST_HEADING; ?>"<?php if ( TOC_POSITION_AFTER_FIRST_HEADING == $this->options['position'] ) echo ' selected="selected"'; ?>><?php _e('After first heading', 'toc+'); ?></option>
 			<option value="<?php echo TOC_POSITION_TOP; ?>"<?php if ( TOC_POSITION_TOP == $this->options['position'] ) echo ' selected="selected"'; ?>><?php _e('Top', 'toc+'); ?></option>
 			<option value="<?php echo TOC_POSITION_BOTTOM; ?>"<?php if ( TOC_POSITION_BOTTOM == $this->options['position'] ) echo ' selected="selected"'; ?>><?php _e('Bottom', 'toc+'); ?></option>
 		</select>
@@ -743,12 +833,20 @@ if ( !class_exists( 'toc' ) ) :
 	<table class="form-table">
 	<tbody>
 	<tr>
+		<th><label for="lowercase"><?php _e('Lowercase', 'toc+'); ?></label></th>
+		<td><input type="checkbox" value="1" id="lowercase" name="lowercase"<?php if ( $this->options['lowercase'] ) echo ' checked="checked"'; ?> /><label for="lowercase"> <?php _e('Ensure anchors are in lowercase', 'toc+'); ?></label></td>
+	</tr>
+	<tr>
+		<th><label for="hyphenate"><?php _e('Hyphenate', 'toc+'); ?></label></th>
+		<td><input type="checkbox" value="1" id="hyphenate" name="hyphenate"<?php if ( $this->options['hyphenate'] ) echo ' checked="checked"'; ?> /><label for="hyphenate"> <?php _e('Use - rather than _ in anchors', 'toc+'); ?></label></td>
+	</tr>
+	<tr>
 		<th><label for="include_homepage"><?php _e('Include homepage', 'toc+'); ?></label></th>
 		<td><input type="checkbox" value="1" id="include_homepage" name="include_homepage"<?php if ( $this->options['include_homepage'] ) echo ' checked="checked"'; ?> /><label for="include_homepage"> <?php _e('Show the table of contents for qualifying items on the homepage', 'toc+'); ?></label></td>
 	</tr>
 	<tr>
 		<th><label for="exclude_css"><?php _e('Exclude CSS file', 'toc+'); ?></label></th>
-		<td><input type="checkbox" value="1" id="exclude_css" name="exclude_css"<?php if ( $this->options['exclude_css'] ) echo ' checked="checked"'; ?> /><label for="exclude_css"> <?php _e("Prevent the loading of this plugin's CSS styles. When selected, the presentation options from above will also be ignored.", 'toc+'); ?></label></td>
+		<td><input type="checkbox" value="1" id="exclude_css" name="exclude_css"<?php if ( $this->options['exclude_css'] ) echo ' checked="checked"'; ?> /><label for="exclude_css"> <?php _e("Prevent the loading of this plugin's CSS styles. When selected, the appearance options from above will also be ignored.", 'toc+'); ?></label></td>
 	</tr>
 	<tr>
 		<th><label for="bullet_spacing"><?php _e('Preserve theme bullets', 'toc+'); ?></label></th>
@@ -766,6 +864,18 @@ if ( !class_exists( 'toc' ) ) :
 				echo ' /><label for="heading_levels' . $i .'"> ' . __('heading ') . $i . ' - h' . $i . '</label><br />';
 			}
 ?>
+		</td>
+	</tr>
+	<tr>
+		<th><label for="exclude"><?php _e('Exclude headings', 'toc+'); ?></label></th>
+		<td>
+			<input type="text" class="regular-text" value="<?php echo htmlentities( $this->options['exclude'] ); ?>" id="exclude" name="exclude" style="width: 100%;" /><br />
+			<label for="exclude"><?php _e('Specify headings to be excluded from appearing in the table of contents.  Separate multiple headings with a pipe <code>|</code>.  Use an asterisk <code>*</code> as a wildcard to match other text.  Note that this is not case sensitive. Some examples:', 'toc+'); ?></label><br/>
+			<ul>
+				<li><?php _e('<code>Fruit*</code> ignore headings starting with "Fruit"', 'toc+'); ?></li>
+				<li><?php _e('<code>*Fruit Diet*</code> ignore headings with "Fruit Diet" somewhere in the heading', 'toc+'); ?></li>
+				<li><?php _e('<code>Apple Tree|Oranges|Yellow Bananas</code> ignore headings that are exactly "Apple Tree", "Oranges" or "Yellow Bananas"', 'toc+'); ?></li>
+			</ul>
 		</td>
 	</tr>
 	<tr id="smooth_scroll_offset_tr" class="<?php if ( !$this->options['smooth_scroll'] ) echo 'disabled'; ?>">
@@ -921,6 +1031,7 @@ h1, h2, h3, h4, h5, h6 { clear: none; }
 			<li><strong>no_label</strong>: <?php _e('true/false, shows or hides the title', 'toc+'); ?></li>
 			<li><strong>wrapping</strong>: <?php _e('text, either "left" or "right"', 'toc+'); ?></li>
 			<li><strong>heading_levels</strong>: <?php _e('numbers, this lets you select the heading levels you want included in the table of contents. Separate multiple levels with a comma. Example: include headings 3, 4 and 5 but exclude the others with', 'toc+'); ?> <code>heading_levels="3,4,5"</code></li>
+			<li><strong>exclude</strong>: <?php _e('text, enter headings to be excluded.  Separate multiple headings with a pipe <code>|</code>. Use an asterisk <code>*</code> as a wildcard to match other text. You could also use regular expressions for more advanced matching.', 'toc+'); ?></li>
 		</ul>
 	</td>
 </tr>
@@ -952,11 +1063,71 @@ h1, h2, h3, h4, h5, h6 { clear: none; }
 	<td><?php _e('Similar to [sitemap_pages] but for categories.', 'toc+'); ?></td>
 	<td>&nbsp;</td>
 </tr>
+<tr>
+	<td>[sitemap_posts]</td>
+	<td><?php _e('This lets you print out an index of all published posts on your site.  By default, posts are listed in alphabetical order grouped by their first letters. There are CSS classes for each section, letter and list allowing you to customise the appearance.', 'toc+'); ?></td>
+	<td>
+		<ul>
+			<li><strong>order</strong>: <?php _e('text, either ASC or DESC', 'toc+'); ?></li>
+			<li><strong>orderby</strong>: <?php printf(__('text, popular options include "title", "date", "ID", and "rand". See %1$sWP_Query%2$s for a list.', 'toc+'), '<a href="https://codex.wordpress.org/Class_Reference/WP_Query#Order_.26_Orderby_Parameters">', '</a>'); ?></li>
+		</ul>
+	</td>
+</tr>
+
 </tbody>
 </table>
 
 <h3><?php _e('I have another question...', 'toc+'); ?></h3>
 <p><?php printf(__('Visit the %1$splugin homepage%2$s to ask your question - who knows, maybe your question has already been answered. I\'d really like to hear your suggestions if you have any.', 'toc+'), '<a href="http://dublue.com/plugins/toc/">', '</a>'); ?></p>
+
+<h3><?php _e('For developers', 'toc+'); ?> <span class="show_hide">(<a href="#toc_for_developers"><?php _e('show', 'toc+'); ?></a>)</span></h3>
+<div id="toc_for_developers">
+	<h4><?php _e('How do I customise my anchors?', 'toc+'); ?></h4>
+	<p><?php _e("If you're still not happy with the anchors, you can modify them to suit your needs through a custom function hooked into the <code>toc_url_anchor_target</code> filter.  As an example, place the below code snippet into your functions.php file to convert all anchors to uppercase.", 'toc+'); ?></p>
+	<pre>
+function my_custom_anchor( $anchor )
+{
+	return strtoupper( $anchor );
+}
+add_filter( 'toc_url_anchor_target', 'my_custom_anchor' );
+	</pre>
+
+	<h4>toc_get_index( $content = '', $prefix_url = '' )</h4>
+	<p><?php _e('Returns a HTML formatted string of the table of contents without the surrounding UL or OL tags to allow the theme editor to supply their own ID and/or classes to the outer list.', 'toc+'); ?></p>
+	<p><?php _e('Both parameters are optional:', 'toc+'); ?></p>
+	<ul>
+		<li><code>$content</code> <?php
+			/* translators: this explains the $content parameter */
+			_e('is the entire content with headings.  If blank, will default to the current content found in $post (eg within "the loop").', 'toc+'); ?></li>
+		<li><code>$prefix_url</code> <?php
+			/* translators: this explains the $prefix_url parameter */
+			_e('is the URL to prefix the anchor with.  If a string was provided, it will be used as is.  If set to "true" then will try to obtain the permalink from the $post object.', 'toc+'); ?></li>
+	</ul>
+	<p><?php _e('These examples assume you are within "the loop":', 'toc+'); ?></p>
+	<ol>
+		<li><?php _e('Obtain the index for the current page', 'toc+'); ?>
+			<pre>echo '&lt;ul id="my_toc"&gt;' . toc_get_index() . '&lt;/ul&gt;';</pre>
+		</li>
+		<li><?php _e('Create a listing of all children and their headings', 'toc+'); ?>
+			<pre>
+$children = new WP_Query(array(
+	'post_parent' => get_the_ID(),
+	'posts_per_page' => -1	// get all children
+));
+while ( $children->have_posts() ) {
+	$children->the_post();
+	echo 
+		'&lt;h3&gt;' . get_the_title() . '&lt;/h3&gt;' .
+		'&lt;ul&gt;' . toc_get_index( get_the_content(), get_permalink( $children->post->ID ) ) . '&lt;/ul&gt;'
+	;
+}
+wp_reset_postdata();
+			</pre>
+		</li>
+	</ol>
+	
+</div>
+
 
 	</div>
 </div>
@@ -968,113 +1139,46 @@ h1, h2, h3, h4, h5, h6 { clear: none; }
 <?php
 		}
 		
-		
-		function public_styles()
-		{
-			if ( !$this->options['exclude_css'] )
-				wp_enqueue_style("toc-screen");
-		}
-		
 							
 		function wp_head()
 		{
-			if ( 
-				$this->options['theme'] == TOC_THEME_CUSTOM || 
-				$this->options['width'] != 'Auto' || 
-				( '95%' != $this->options['font_size'] . $this->options['font_size_units'] )
-			) :
-?>
-<style type="text/css">
-div#toc_container {
-<?php if ( $this->options['theme'] == TOC_THEME_CUSTOM && !$this->options['exclude_css'] ) : ?>
-	background: <?php echo $this->options['custom_background_colour']; ?>;
-	border: 1px solid <?php echo $this->options['custom_border_colour']; ?>;
-<?php
-	endif;
-	
-	if ( $this->options['width'] != 'Auto' ) {
-		echo '	width: ';
-		if ( $this->options['width'] != 'User defined' )
-			echo $this->options['width'];
-		else
-			echo $this->options['width_custom'] . $this->options['width_custom_units'];
-		echo ";\n";
-	}
-	
-	if ( '95%' != $this->options['font_size'] . $this->options['font_size_units'] ) {
-		echo '	font-size: ' . $this->options['font_size'] . $this->options['font_size_units'] . ";\n";
-	}
-?>
-}
-<?php 
-	if ( !$this->options['exclude_css'] ) {
-		if ( $this->options['custom_title_colour'] != TOC_DEFAULT_TITLE_COLOUR ) : 
-?>
-div#toc_container p.toc_title {
-	color: <?php echo $this->options['custom_title_colour']; ?>;
-}
-<?php
-	endif;
+			$css = '';
+			
+			if ( !$this->options['exclude_css'] ) {
+				if ( $this->options['theme'] == TOC_THEME_CUSTOM || $this->options['width'] != 'Auto' ) {
+					$css .= 'div#toc_container {';
+					if ( $this->options['theme'] == TOC_THEME_CUSTOM )
+						$css .= 'background: ' . $this->options['custom_background_colour'] . ';border: 1px solid ' . $this->options['custom_border_colour'] . ';';
+					if ( $this->options['width'] != 'Auto' ) {
+						$css .= 'width: ';
+						if ( $this->options['width'] != 'User defined' )
+							$css .= $this->options['width'];
+						else
+							$css .= $this->options['width_custom'] . $this->options['width_custom_units'];
+						$css .= ';';
+					}
+					$css .= '}';
+				}
 				
-	if ( $this->options['custom_links_colour'] != TOC_DEFAULT_LINKS_COLOUR ) : ?>
-div#toc_container p.toc_title a,
-div#toc_container ul.toc_list a {
-	color: <?php echo $this->options['custom_links_colour']; ?>;
-}
-<?php
-	endif;
+				if ( '95%' != $this->options['font_size'] . $this->options['font_size_units'] )
+					$css .= 'div#toc_container ul li {font-size: ' . $this->options['font_size'] . $this->options['font_size_units'] . ';}';
 	
-	if ( $this->options['custom_links_hover_colour'] != TOC_DEFAULT_LINKS_HOVER_COLOUR ) : ?>
-div#toc_container p.toc_title a:hover,
-div#toc_container ul.toc_list a:hover {
-	color: <?php echo $this->options['custom_links_hover_colour']; ?>;
-}
-<?php
-	endif;
-	
-	if ( $this->options['custom_links_visited_colour'] != TOC_DEFAULT_LINKS_VISITED_COLOUR ) : ?>
-div#toc_container p.toc_title a:visited,
-div#toc_container ul.toc_list a:visited {
-	color: <?php echo $this->options['custom_links_visited_colour']; ?>;
-}
-<?php 
-		endif; 
-	}
-?>
-</style>
-<?php
-			endif;
-			
-		}
-		
-		
-		/**
-		 * Load front end javascript only on front end pages.  Putting it into 'init' will
-		 * load it on both frontend and backend pages.
-		 */
-		function template_redirect()
-		{
-			$js_vars = array();
-			
-			if ( $this->options['smooth_scroll'] ) $js_vars['smooth_scroll'] = true;
-			wp_enqueue_script( 'toc-front' );
-			if ( $this->options['show_heading_text'] && $this->options['visibility'] ) {
-				$width = ( $this->options['width'] != 'User defined' ) ? $this->options['width'] : $this->options['width_custom'] . $this->options['width_custom_units'];
-				$js_vars['visibility_show'] = esc_js($this->options['visibility_show']);
-				$js_vars['visibility_hide'] = esc_js($this->options['visibility_hide']);
-				if ( $this->options['visibility_hide_by_default'] ) $js_vars['visibility_hide_by_default'] = true;
-				$js_vars['width'] = esc_js($width);
+				if ( $this->options['theme'] == TOC_THEME_CUSTOM ) {
+					if ( $this->options['custom_title_colour'] != TOC_DEFAULT_TITLE_COLOUR )
+						$css .= 'div#toc_container p.toc_title {color: ' . $this->options['custom_title_colour'] . ';}';
+					if ( $this->options['custom_links_colour'] != TOC_DEFAULT_LINKS_COLOUR )
+						$css .= 'div#toc_container p.toc_title a,div#toc_container ul.toc_list a {color: ' . $this->options['custom_links_colour'] . ';}';
+					if ( $this->options['custom_links_hover_colour'] != TOC_DEFAULT_LINKS_HOVER_COLOUR )
+						$css .= 'div#toc_container p.toc_title a:hover,div#toc_container ul.toc_list a:hover {color: ' . $this->options['custom_links_hover_colour'] . ';}';
+					if ( $this->options['custom_links_hover_colour'] != TOC_DEFAULT_LINKS_HOVER_COLOUR )
+						$css .= 'div#toc_container p.toc_title a:hover,div#toc_container ul.toc_list a:hover {color: ' . $this->options['custom_links_hover_colour'] . ';}';
+					if ( $this->options['custom_links_visited_colour'] != TOC_DEFAULT_LINKS_VISITED_COLOUR )
+						$css .= 'div#toc_container p.toc_title a:visited,div#toc_container ul.toc_list a:visited {color: ' . $this->options['custom_links_visited_colour'] . ';}';
+				}
 			}
-			if ( $this->options['smooth_scroll_offset'] != TOC_SMOOTH_SCROLL_OFFSET )
-				$js_vars['smooth_scroll_offset'] = esc_js($this->options['smooth_scroll_offset']);
 			
-			if ( count($js_vars) > 0 ) {
-				wp_localize_script(
-					'toc-front',
-					'tocplus',
-					$js_vars
-				);
-			}
+			if ( $css )
+				echo '<style type="text/css">' . $css . '</style>';
 		}
 		
 		
@@ -1106,11 +1210,20 @@ div#toc_container ul.toc_list a:visited {
 				
 				// remove trailing - and _
 				$return = rtrim( $return, '-_' );
+				
+				// lowercase everything?
+				if ( $this->options['lowercase'] ) $return = strtolower($return);
 
 				// if blank, then prepend with the fragment prefix
 				// blank anchors normally appear on sites that don't use the latin charset
 				if ( !$return ) {
 					$return = ( $this->options['fragment_prefix'] ) ? $this->options['fragment_prefix'] : '_';
+				}
+				
+				// hyphenate?
+				if ( $this->options['hyphenate'] ) {
+					$return = str_replace('_', '-', $return);
+					$return = str_replace('--', '-', $return);
 				}
 			}
 			
@@ -1121,7 +1234,7 @@ div#toc_container ul.toc_list a:visited {
 			else
 				$this->collision_collector[$return] = 1;
 			
-			return $return;
+			return apply_filters( 'toc_url_anchor_target', $return );
 		}
 		
 		
@@ -1273,7 +1386,35 @@ div#toc_container ul.toc_list a:visited {
 						}
 						$matches = $new_matches;
 					}
-				
+
+					// remove specific headings if provided via the 'exclude' property
+					$excluded_headings = explode('|', $this->options['exclude']);
+					if ( count($excluded_headings) > 0 ) {
+						for ($j = 0; $j < count($excluded_headings); $j++) {
+							// escape some regular expression characters
+							// others: http://www.php.net/manual/en/regexp.reference.meta.php
+							$excluded_headings[$j] = str_replace(
+								array('*'), 
+								array('.*'), 
+								trim($excluded_headings[$j])
+							);
+						}
+
+						$new_matches = array();
+						for ($i = 0; $i < count($matches); $i++) {
+							$found = false;
+							for ($j = 0; $j < count($excluded_headings); $j++) {
+								if ( @preg_match('/^' . $excluded_headings[$j] . '$/imU', strip_tags($matches[$i][0])) ) {
+									$found = true;
+									break;
+								}
+							}
+							if (!$found) $new_matches[] = $matches[$i];
+						}
+						if ( count($matches) != count($new_matches) )
+							$matches = $new_matches;
+					}
+
 					for ($i = 0; $i < count($matches); $i++) {
 						// get anchor and add to find and replace arrays
 						$anchor = $this->url_anchor_target( $matches[$i][0] );
@@ -1440,6 +1581,11 @@ div#toc_container ul.toc_list a:visited {
 									case TOC_POSITION_BOTTOM:
 										$content = $this->mb_find_replace($find, $replace, $content) . $html;
 										break;
+									
+									case TOC_POSITION_AFTER_FIRST_HEADING:
+										$replace[0] = $replace[0] . $html;
+										$content = $this->mb_find_replace($find, $replace, $content);
+										break;
 								
 									case TOC_POSITION_BEFORE_FIRST_HEADING:
 									default:
@@ -1495,7 +1641,7 @@ if ( !class_exists( 'toc_widget' ) ) :
 				
 				extract( $args );
 				
-				$items = $tic->extract_headings( $find, $replace, $post->post_content );
+				$items = $tic->extract_headings( $find, $replace, wptexturize($post->post_content) );
 				$title = apply_filters('widget_title', $instance['title'] );
 				if ( strpos($title, '%PAGE_TITLE%') !== false ) $title = str_replace( '%PAGE_TITLE%', get_the_title(), $title );
 				$hide_inline = $toc_options['show_toc_in_widget_only'];
@@ -1566,6 +1712,38 @@ if ( !class_exists( 'toc_widget' ) ) :
 		
 	} // end class
 endif;
+
+
+/**
+ * Returns a HTML formatted string of the table of contents without the surrounding UL or OL
+ * tags to enable the theme editor to supply their own ID and/or classes to the outer list.
+ *
+ * There are two optional parameters you can feed this function with:
+ *
+ *		- $content is the entire content with headings.  If blank, will default to the current $post
+ *
+ * 		- $link is the URL to prefix the anchor with.  If provided a string, will use it as the prefix.  
+ *		If set to true then will try to obtain the permalink from the $post object.
+ */
+function toc_get_index( $content = '', $prefix_url = '' )
+{
+	global $wp_query, $tic;
+	
+	$return = '';
+	$find = $replace = array();
+	
+	if ( !$content ) {
+		$post = get_post( $wp_query->post->ID );
+		$content = wptexturize($post->post_content);
+	}
+	
+	if ( $tic->is_eligible() ) {
+		$return = $tic->extract_headings( $find, $replace, $content );
+		if ( $prefix_url ) $return = str_replace('href="#', 'href="' . $prefix_url . '#', $return);
+	}
+	
+	return $return;
+}
 
 
 

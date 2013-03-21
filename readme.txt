@@ -4,7 +4,7 @@ Donate link:
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.0
 Tested up to: 3.5
-Stable tag: 1211
+Stable tag: 1303
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,7 @@ Custom post types are supported, however, auto insertion works only when the_con
 = Available Languages =
 * Australian English (default)
 * Simplified Chinese - [icedream](http://www.tesfans.org/)
+* Slovak - [Branco Radenovich (webhostinggeeks.com/user-reviews/)](http://webhostinggeeks.com/user-reviews/)
 
 Translations are more than welcome. If you have any advice in making it easier to translate, please let me know.
 
@@ -36,9 +37,12 @@ If you have questions or suggestions, please place them at [http://dublue.com/pl
 
 == Screenshots ==
 
-1. An example of the table of contents, positioned at the top and right aligned
-2. The main options tab in the administration area
-3. The sitemap options tab
+1. An example of the table of contents, positioned at the top, right aligned, and a width of 275px
+2. An example of the sitemap_pages shortcode
+3. An example of the sitemap_posts shortcode
+4. The options panel found in Settings > TOC+
+5. Some advanced options
+6. The sitemap tab
 
 
 == Installation ==
@@ -70,7 +74,7 @@ Lets you generate the table of contents at the preferred position.  Useful for s
 Allows you to disable the table of contents for the current post, page, or custom post type.
 
 = [sitemap] =
-Produces a listing of all pages and categories for your site. You can use this on any post, page or even in a text widget.
+Produces a listing of all pages and categories for your site. You can use this on any post, page or even in a text widget.  Note that this will not include an index of posts so use sitemap_posts if you need this listing.
 
 = [sitemap_pages] =
 Lets you print out a listing of only pages. The following attributes are accepted:
@@ -83,8 +87,36 @@ Lets you print out a listing of only pages. The following attributes are accepte
 = [sitemap_categories] =
 Same as `[sitemap_pages]` but for categories.
 
+= [sitemap_posts] =
+This lets you print out an index of all published posts on your site.  By default, posts are listed in alphabetical order grouped by their first letters.  The following attributes are accepted:
+* "order": text, either ASC or DESC
+* "orderby": text, popular options include "title", "date", "ID", and "rand". See [WP_Query](https://codex.wordpress.org/Class_Reference/WP_Query#Order_.26_Orderby_Parameters) for a list.
+Use the following CSS classes to customise the appearance of your listing:
+* toc_sitemap_posts_section
+* toc_sitemap_posts_letter
+* toc_sitemap_posts_list
+
 
 == Changelog ==
+
+= 1303 =
+* Released: 21 March 2013
+* New: option auto insert after the first heading.  Thanks to [@thelawnetwork](http://dublue.com/plugins/toc/comment-page-4/#comment-1782) for requesting it.
+* New: allow headings to be excluded from the table of contents.  This is available both globally under the advanced section of Settings > TOC+ and individually with the TOC shortcode.  Check out the help material for examples.  Thanks to the many of you that requested it.
+* New: advanced option to lowercase all anchors.  The default is off.
+* New: advanced option to use hyphens rather than underscores in anchors.  The default is off.
+* New: shortcode to list all posts in alphabetical order grouped by first letter.
+* New: added Slovak translation, curtesy Branco Radenovich.
+* Add version numbers to CSS/JS files to better support setups that cache these files heavily for timely invalidation.  Thanks to [boxcarpress](http://wordpress.org/support/topic/some-changes-we-made-that-you-might-consider) for the amendments.
+* Add CSS class 'contracted' to #toc_container when the table of contents is hidden. Thanks to [Sam](http://wordpress.org/support/topic/hide-link-not-working?replies=6#post-3968019) for suggesting it.
+* With smooth scroll enabled, do not use an offset if no admin bar is present and the offset value is default.  This means that public users do not have the offset space at the top.
+* New help material for developers under the help tab.
+* Added API function: toc_get_index() lets you retrieve a table of contents to be placed within PHP.  Check out the new developer help material for examples.
+* Allow anchors to be filterable using toc_url_anchor_target to customise further through code.  Check the new developer help material for an example.  Thanks to [Russell Heimlich](http://dublue.com/plugins/toc/comment-page-4/#comment-1713) for the tip.
+* Adjust CSS and JS registration.
+* Updated jQuery Smooth Scroll to 1.4.10.
+* Fixed: When using the widget, addressed an issue where the index with special characters (such as ' and ") would not link to the correct spot within the content.  Thanks to [esandman](http://wordpress.org/support/topic/problems-with-apostrophes-and-quotation-marks) for raising it.
+* Fixed: Saving at Settings > TOC+ resets TOC+ widget options.  Thanks to [Chris](http://dublue.com/plugins/toc/comment-page-4/#comment-1808) for reporting it.
 
 = 1211 =
 * Released: 17 November 2012
