@@ -5,7 +5,7 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1303
+Version: 		1303.1
 License:		GPL2
 */
 
@@ -39,7 +39,7 @@ FOR CONSIDERATION:
 	- highlight target css
 */
 
-define( 'TOC_VERSION', '1303' );
+define( 'TOC_VERSION', '1303.1' );
 define( 'TOC_POSITION_BEFORE_FIRST_HEADING', 1 );
 define( 'TOC_POSITION_TOP', 2 );
 define( 'TOC_POSITION_BOTTOM', 3 );
@@ -1388,31 +1388,33 @@ wp_reset_postdata();
 					}
 
 					// remove specific headings if provided via the 'exclude' property
-					$excluded_headings = explode('|', $this->options['exclude']);
-					if ( count($excluded_headings) > 0 ) {
-						for ($j = 0; $j < count($excluded_headings); $j++) {
-							// escape some regular expression characters
-							// others: http://www.php.net/manual/en/regexp.reference.meta.php
-							$excluded_headings[$j] = str_replace(
-								array('*'), 
-								array('.*'), 
-								trim($excluded_headings[$j])
-							);
-						}
-
-						$new_matches = array();
-						for ($i = 0; $i < count($matches); $i++) {
-							$found = false;
+					if ( $this->options['exclude'] ) {
+						$excluded_headings = explode('|', $this->options['exclude']);
+						if ( count($excluded_headings) > 0 ) {
 							for ($j = 0; $j < count($excluded_headings); $j++) {
-								if ( @preg_match('/^' . $excluded_headings[$j] . '$/imU', strip_tags($matches[$i][0])) ) {
-									$found = true;
-									break;
-								}
+								// escape some regular expression characters
+								// others: http://www.php.net/manual/en/regexp.reference.meta.php
+								$excluded_headings[$j] = str_replace(
+									array('*'), 
+									array('.*'), 
+									trim($excluded_headings[$j])
+								);
 							}
-							if (!$found) $new_matches[] = $matches[$i];
+	
+							$new_matches = array();
+							for ($i = 0; $i < count($matches); $i++) {
+								$found = false;
+								for ($j = 0; $j < count($excluded_headings); $j++) {
+									if ( @preg_match('/^' . $excluded_headings[$j] . '$/imU', strip_tags($matches[$i][0])) ) {
+										$found = true;
+										break;
+									}
+								}
+								if (!$found) $new_matches[] = $matches[$i];
+							}
+							if ( count($matches) != count($new_matches) )
+								$matches = $new_matches;
 						}
-						if ( count($matches) != count($new_matches) )
-							$matches = $new_matches;
 					}
 
 					for ($i = 0; $i < count($matches); $i++) {

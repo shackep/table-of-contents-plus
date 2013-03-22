@@ -4,7 +4,7 @@ Donate link:
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.0
 Tested up to: 3.5
-Stable tag: 1303
+Stable tag: 1303.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,8 +27,9 @@ Custom post types are supported, however, auto insertion works only when the_con
 
 = Available Languages =
 * Australian English (default)
+* Polish - [Jakub](http://notatki.4use.pl/)
 * Simplified Chinese - [icedream](http://www.tesfans.org/)
-* Slovak - [Branco Radenovich (webhostinggeeks.com/user-reviews/)](http://webhostinggeeks.com/user-reviews/)
+* Slovak - [Branco Radenovich](http://webhostinggeeks.com/user-reviews/)
 
 Translations are more than welcome. If you have any advice in making it easier to translate, please let me know.
 
@@ -99,6 +100,11 @@ Use the following CSS classes to customise the appearance of your listing:
 
 == Changelog ==
 
+= 1303.1 =
+* Released: 22 March 2013
+* New: added Polish translation, curtesy [Jakub](http://notatki.4use.pl/).
+* Fixed: an issue in 1303 that ignored headings with the opening tag on the first line and the heading text on a new line.  Thanks to [richardsng](http://wordpress.org/support/topic/unable-to-display-the-full-toc) for the quick discovery.
+
 = 1303 =
 * Released: 21 March 2013
 * New: option auto insert after the first heading.  Thanks to [@thelawnetwork](http://dublue.com/plugins/toc/comment-page-4/#comment-1782) for requesting it.
@@ -106,7 +112,7 @@ Use the following CSS classes to customise the appearance of your listing:
 * New: advanced option to lowercase all anchors.  The default is off.
 * New: advanced option to use hyphens rather than underscores in anchors.  The default is off.
 * New: shortcode to list all posts in alphabetical order grouped by first letter.
-* New: added Slovak translation, curtesy Branco Radenovich.
+* New: added Slovak translation, curtesy [Branco Radenovich](http://webhostinggeeks.com/user-reviews/).
 * Add version numbers to CSS/JS files to better support setups that cache these files heavily for timely invalidation.  Thanks to [boxcarpress](http://wordpress.org/support/topic/some-changes-we-made-that-you-might-consider) for the amendments.
 * Add CSS class 'contracted' to #toc_container when the table of contents is hidden. Thanks to [Sam](http://wordpress.org/support/topic/hide-link-not-working?replies=6#post-3968019) for suggesting it.
 * With smooth scroll enabled, do not use an offset if no admin bar is present and the offset value is default.  This means that public users do not have the offset space at the top.
