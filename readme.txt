@@ -2,9 +2,9 @@
 Contributors: conjur3r
 Donate link: 
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
-Requires at least: 3.0
-Tested up to: 3.5
-Stable tag: 1303.1
+Requires at least: 3.2
+Tested up to: 3.6
+Stable tag: 1308
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,7 +29,7 @@ Custom post types are supported, however, auto insertion works only when the_con
 * Australian English (default)
 * Polish - [Jakub](http://notatki.4use.pl/)
 * Simplified Chinese - [icedream](http://www.tesfans.org/)
-* Slovak - [Branco Radenovich](http://webhostinggeeks.com/user-reviews/)
+* Slovak - Boris Gereg
 
 Translations are more than welcome. If you have any advice in making it easier to translate, please let me know.
 
@@ -92,6 +92,7 @@ Same as `[sitemap_pages]` but for categories.
 This lets you print out an index of all published posts on your site.  By default, posts are listed in alphabetical order grouped by their first letters.  The following attributes are accepted:
 * "order": text, either ASC or DESC
 * "orderby": text, popular options include "title", "date", "ID", and "rand". See [WP_Query](https://codex.wordpress.org/Class_Reference/WP_Query#Order_.26_Orderby_Parameters) for a list.
+* "separate": true/false (defaults to true), does not separate the lists by first letter when set to false.
 Use the following CSS classes to customise the appearance of your listing:
 * toc_sitemap_posts_section
 * toc_sitemap_posts_letter
@@ -99,6 +100,13 @@ Use the following CSS classes to customise the appearance of your listing:
 
 
 == Changelog ==
+
+= 1308 =
+* Released: 5 August 2013
+* Fix javascript issue with minimum jQuery version check (broke smooth scrolling using WordPress 3.6).
+* Replaced Slovak translation with a human translated version courtesy Boris Gereg.
+* Remove <!--TOC--> signature from source when using the shortcode but not allowed to print (eg on homepage).
+* Add "separate" attribute for sitemap_posts shortcode to not split by letter, thanks [DavidMjps](http://wordpress.org/support/topic/exclude-alphabetical-headings-on-sitemap) for the suggestion.
 
 = 1303.1 =
 * Released: 22 March 2013

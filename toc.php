@@ -5,7 +5,7 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1303.1
+Version: 		1308
 License:		GPL2
 */
 
@@ -39,7 +39,7 @@ FOR CONSIDERATION:
 	- highlight target css
 */
 
-define( 'TOC_VERSION', '1303.1' );
+define( 'TOC_VERSION', '1308' );
 define( 'TOC_POSITION_BEFORE_FIRST_HEADING', 1 );
 define( 'TOC_POSITION_TOP', 2 );
 define( 'TOC_POSITION_BOTTOM', 3 );
@@ -183,15 +183,19 @@ if ( !class_exists( 'toc' ) ) :
 		{
 			extract( shortcode_atts( array(
 				'label' => $this->options['heading_text'],
+				'label_show' => $this->options['visibility_show'],
+				'label_hide' => $this->options['visibility_hide'],
 				'no_label' => false,
 				'wrapping' => $this->options['wrapping'],
 				'heading_levels' => $this->options['heading_levels'],
 				'exclude' => $this->options['exclude']
 				), $atts )
 			);
-			
+
 			if ( $no_label ) $this->options['show_heading_text'] = false;
 			if ( $label ) $this->options['heading_text'] = html_entity_decode( $label );
+			if ( $label_show ) $this->options['visibility_show'] = html_entity_decode( $label_show );
+			if ( $label_hide ) $this->options['visibility_hide'] = html_entity_decode( $label_hide );
 			if ( $wrapping ) {
 				switch ( strtolower(trim($wrapping)) ) {
 					case 'left':
@@ -330,7 +334,8 @@ if ( !class_exists( 'toc' ) ) :
 		{
 			extract( shortcode_atts( array(
 				'order' => 'ASC',
-				'orderby' => 'title'
+				'orderby' => 'title',
+				'separate' => true
 				), $atts )
 			);
 						
@@ -343,22 +348,32 @@ if ( !class_exists( 'toc' ) ) :
 			));
 			
 			$html = $letter = '';
+
+			$separate = strtolower($separate);
+			if ( $separate == 'false' || $separate == 'no') $separate = false;
 			
 			while ( $articles->have_posts() ) {
 				$articles->the_post();
 				$title = get_the_title();
-				
-				if ( $letter != strtolower($title[0]) ) {
-					if ( $letter ) $html .= '</ul></div>';
-					
-					$html .= '<div class="toc_sitemap_posts_section"><p class="toc_sitemap_posts_letter">' . strtolower($title[0]) . '</p><ul class="toc_sitemap_posts_list">';
-					$letter = strtolower($title[0]);
+
+				if ( $separate ) {
+					if ( $letter != strtolower($title[0]) ) {
+						if ( $letter ) $html .= '</ul></div>';
+						
+						$html .= '<div class="toc_sitemap_posts_section"><p class="toc_sitemap_posts_letter">' . strtolower($title[0]) . '</p><ul class="toc_sitemap_posts_list">';
+						$letter = strtolower($title[0]);
+					}
 				}
 
 				$html .= '<li><a href="' . get_permalink($articles->post->ID) . '">' . $title . '</a></li>';
 			}
 			
-			if ( $html ) $html .= '</div>';
+			if ( $html ) {
+				if ( $separate )
+					$html .= '</div>';
+				else
+					$html = '<div class="toc_sitemap_posts_section"><ul class="toc_sitemap_posts_list">' . $html . '</ul></div>';
+			}
 			
 			wp_reset_postdata();
 			
@@ -1070,6 +1085,7 @@ h1, h2, h3, h4, h5, h6 { clear: none; }
 		<ul>
 			<li><strong>order</strong>: <?php _e('text, either ASC or DESC', 'toc+'); ?></li>
 			<li><strong>orderby</strong>: <?php printf(__('text, popular options include "title", "date", "ID", and "rand". See %1$sWP_Query%2$s for a list.', 'toc+'), '<a href="https://codex.wordpress.org/Class_Reference/WP_Query#Order_.26_Orderby_Parameters">', '</a>'); ?></li>
+			<li><strong>separate</strong>: <?php _e('true/false (defaults to true), does not separate the lists by first letter when set to false.', 'toc+'); ?></li>
 		</ul>
 	</td>
 </tr>
@@ -1598,6 +1614,10 @@ wp_reset_postdata();
 						}
 					}
 				}
+			}
+			else {
+				// remove <!--TOC--> (inserted from shortcode) from content
+				$content = str_replace('<!--TOC-->', '', $content);
 			}
 		
 			return $content;
