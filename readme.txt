@@ -111,12 +111,13 @@ I will never ask for any form of reward or compensation.  Helping others achieve
 == Changelog ==
 
 = 1402 =
-* Released: 18 February 2014
+* Released: 19 February 2014
 * Added German translation courtesy [Cord Peter](http://drv-gemeinschaft.de/)
 * Modify toc_get_index API function to also reset minimum number of headings to 0.
 * Removing the TOC+ widget from the sidebar no longer requires you to uncheck the 'Show the table of contents only in the sidebar' option. It will be reset on removal.
-* Using the TOC+ widget, you can now limit the display to selected post types. Thanks to [Pete Markovic](http://dublue.com/plugins/toc/comment-page-6/#comment-2248) for the idea.
 * Delay count of headings until disqualified have been removed. Thanks to [Simone di Saintjust](http://dublue.com/plugins/toc/comment-page-6/#comment-2190) for raising it.
+* Using the TOC+ widget, you can now limit the display to selected post types. Thanks to [Pete Markovic](http://dublue.com/plugins/toc/comment-page-6/#comment-2248) for the idea.
+* Updated translation file (extra options added).
 
 = 1311 =
 * Released: 10 November 2013
