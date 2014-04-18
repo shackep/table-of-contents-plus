@@ -3,8 +3,8 @@ Contributors: conjur3r
 Donate link: 
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.2
-Tested up to: 3.8.1
-Stable tag: 1402
+Tested up to: 3.9
+Stable tag: 1404
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -109,6 +109,12 @@ I will never ask for any form of reward or compensation.  Helping others achieve
 
 
 == Changelog ==
+
+= 1404 =
+* Released: 18 April 2014
+* Bump WordPress support to 3.9
+* Fixed: Strip HTML tags from post titles for sitemap_posts so those items do not appear under a < heading. Thanks to [Rose](http://dublue.com/plugins/toc/comment-page-6/#comment-2311) for reporting it.
+* Fictitious: This release was powered by three blind mice.
 
 = 1402 =
 * Released: 19 February 2014

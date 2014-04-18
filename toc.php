@@ -5,11 +5,11 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1402
+Version: 		1404
 License:		GPL2
 */
 
-/*  Copyright 2013  Michael Tran  (michael@dublue.com)
+/*  Copyright 2014  Michael Tran  (michael@dublue.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as 
@@ -39,7 +39,7 @@ FOR CONSIDERATION:
 	- highlight target css
 */
 
-define( 'TOC_VERSION', '1402' );
+define( 'TOC_VERSION', '1404' );
 define( 'TOC_POSITION_BEFORE_FIRST_HEADING', 1 );
 define( 'TOC_POSITION_TOP', 2 );
 define( 'TOC_POSITION_BOTTOM', 3 );
@@ -379,7 +379,7 @@ if ( !class_exists( 'toc' ) ) :
 			
 			while ( $articles->have_posts() ) {
 				$articles->the_post();
-				$title = get_the_title();
+				$title = strip_tags(get_the_title());
 
 				if ( $separate ) {
 					if ( $letter != strtolower($title[0]) ) {
