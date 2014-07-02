@@ -3,7 +3,7 @@ Contributors: conjur3r
 Donate link: 
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.2
-Tested up to: 3.9
+Tested up to: 3.9.1
 Stable tag: 1404
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -28,10 +28,11 @@ Custom post types are supported, however, auto insertion works only when the_con
 = Available Languages =
 * Australian English (default)
 * Dutch - [Renee](http://101themes.com/)
-* German - [Cord Peter](http://drv-gemeinschaft.de/)
+* French – Jean-Michel Duriez
 * Polish - [Jakub](http://notatki.4use.pl/)
 * Simplified Chinese - [icedream](http://www.tesfans.org/)
 * Slovak - Boris Gereg
+* Ukrainian - [Michael Yunat](http://www.iphostmonitor.com/)
 
 Translations are more than welcome. If you have any advice in making it easier to translate, please let me know.
 
@@ -109,6 +110,14 @@ I will never ask for any form of reward or compensation.  Helping others achieve
 
 
 == Changelog ==
+
+= 1407 =
+* Released: xx July 2014
+* Added Ukrainian translation courtesy [Michael Yunat](http://www.iphostmonitor.com/)
+* Added French translation courtesy Jean-Michel Duriez
+* Empty headings are now ignored, as suggested by [archon810](http://wordpress.org/support/topic/patch-ignore-empty-tags)
+* Removed German translation, may have been machine translated, [ref](http://wordpress.org/support/topic/excluding-headlines-special-characters)
+* Fixed: Special chars in TOC+ > Settings > Exclude Headings no longer get mangled on save.  Thanks to N-Z for [reporting it](http://wordpress.org/support/topic/excluding-headlines-special-characters).
 
 = 1404 =
 * Released: 18 April 2014
