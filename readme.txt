@@ -4,7 +4,7 @@ Donate link:
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.2
 Tested up to: 3.9.1
-Stable tag: 1404
+Stable tag: 1407
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -112,7 +112,7 @@ I will never ask for any form of reward or compensation.  Helping others achieve
 == Changelog ==
 
 = 1407 =
-* Released: xx July 2014
+* Released: 5 July 2014
 * Added Ukrainian translation courtesy [Michael Yunat](http://www.iphostmonitor.com/)
 * Added French translation courtesy Jean-Michel Duriez
 * Empty headings are now ignored, as suggested by [archon810](http://wordpress.org/support/topic/patch-ignore-empty-tags)
