@@ -29,7 +29,7 @@ Custom post types are supported, however, auto insertion works only when the_con
 * Australian English (default)
 * Dutch - [Renee](http://101themes.com/)
 * French - Jean-Michel Duriez
-* German - Benjamin Marwell
+* German - [Ben](http://blog.bmarwell.de/)
 * Polish - [Jakub](http://notatki.4use.pl/)
 * Simplified Chinese - [icedream](http://www.tesfans.org/)
 * Slovak - Boris Gereg
@@ -115,7 +115,7 @@ I will never ask for any form of reward or compensation.  Helping others achieve
 
 = 1408 =
 * Released: 1 August 2014
-* Added a human German translation courtesy Benjamin Marwell
+* Added a human German translation courtesy [Ben](http://blog.bmarwell.de/)
 * Added "class" attribute to the TOC shortcode to allow for custom CSS classes to be added to the container.  Thanks to Joe for [suggesting it](http://dublue.com/plugins/toc/comment-page-7/#comment-2803)
 
 = 1407 =
