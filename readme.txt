@@ -1,10 +1,9 @@
 === Table of Contents Plus ===
 Contributors: conjur3r
-Donate link: 
 Tags: table of contents, indexes, toc, sitemap, cms, options, list, page listing, category listing
 Requires at least: 3.2
-Tested up to: 4.1.1
-Stable tag: 1408
+Tested up to: 4.2.1
+Stable tag: 1505
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,7 +30,7 @@ Custom post types are supported, however, auto insertion works only when the_con
 * French - Jean-Michel Duriez
 * German - [Ben](http://blog.bmarwell.de/)
 * Polish - [Jakub](http://notatki.4use.pl/)
-* Simplified Chinese - [icedream](http://www.tesfans.org/)
+* Simplified Chinese - Jason
 * Slovak - Boris Gereg
 * Ukrainian - [Michael Yunat](http://www.iphostmonitor.com/)
 
@@ -112,6 +111,13 @@ I will never ask for any form of reward or compensation.  Helping others achieve
 
 
 == Changelog ==
+
+= 1505 =
+* Released: 2 May 2015
+* Huge thanks to Jason for an updated Simplified Chinese translation.
+* Added collapse property to the toc shortcode.  When set to true, this will hide the table of contents when it loads.  Example usage: [toc collapse="true"]
+* Added label_show and label_hide properties to the toc shortcode.  This lets you change the "show" and "hide" link text when using the shortcode.
+* Bump tested WordPress version to 4.2.1.
 
 = 1408 =
 * Released: 1 August 2014

@@ -5,11 +5,11 @@ Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
 Author: 		Michael Tran
 Author URI: 	http://dublue.com/
-Version: 		1408
+Version: 		1505
 License:		GPL2
 */
 
-/*  Copyright 2014  Michael Tran  (michael@dublue.com)
+/*  Copyright 2015  Michael Tran  (michael@dublue.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as 
@@ -39,7 +39,7 @@ FOR CONSIDERATION:
 	- highlight target css
 */
 
-define( 'TOC_VERSION', '1404' );
+define( 'TOC_VERSION', '1505' );
 define( 'TOC_POSITION_BEFORE_FIRST_HEADING', 1 );
 define( 'TOC_POSITION_TOP', 2 );
 define( 'TOC_POSITION_BOTTOM', 3 );
@@ -215,14 +215,23 @@ if ( !class_exists( 'toc' ) ) :
 				'class' => false,
 				'wrapping' => $this->options['wrapping'],
 				'heading_levels' => $this->options['heading_levels'],
-				'exclude' => $this->options['exclude']
+				'exclude' => $this->options['exclude'],
+				'collapse' => false
 				), $atts )
 			);
 
+			$re_enqueue_scripts = false;
+
 			if ( $no_label ) $this->options['show_heading_text'] = false;
 			if ( $label ) $this->options['heading_text'] = html_entity_decode( $label );
-			if ( $label_show ) $this->options['visibility_show'] = html_entity_decode( $label_show );
-			if ( $label_hide ) $this->options['visibility_hide'] = html_entity_decode( $label_hide );
+			if ( $label_show ) {
+				$this->options['visibility_show'] = html_entity_decode( $label_show );
+				$re_enqueue_scripts = true;
+			}
+			if ( $label_hide ) {
+				$this->options['visibility_hide'] = html_entity_decode( $label_hide );
+				$re_enqueue_scripts = true;
+			}
 			if ( $class ) $this->options['css_container_class'] = $class;
 			if ( $wrapping ) {
 				switch ( strtolower(trim($wrapping)) ) {
@@ -240,6 +249,12 @@ if ( !class_exists( 'toc' ) ) :
 			}
 
 			if ( $exclude ) $this->options['exclude'] = $exclude;
+			if ( $collapse ) {
+				$this->options['visibility_hide_by_default'] = true;
+				$re_enqueue_scripts = true;
+			}
+
+			if ( $re_enqueue_scripts ) do_action( 'wp_enqueue_scripts' );
 
 			// if $heading_levels is an array, then it came from the global options
 			// and wasn't provided by per instance
@@ -366,7 +381,7 @@ if ( !class_exists( 'toc' ) ) :
 				'separate' => true
 				), $atts )
 			);
-						
+			
 			$articles = new WP_Query(array(
 				'post_type' => 'post',
 				'post_status' => 'publish',
@@ -1880,8 +1895,5 @@ function toc_get_index( $content = '', $prefix_url = '', $apply_eligibility = fa
 }
 
 
-
 // do the magic
 $tic = new toc();
-
-?>
