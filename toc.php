@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name:	Table of Contents Plus
+Plugin Name:	Table of Contents Plus + Zurb Magellan
 Plugin URI: 	http://dublue.com/plugins/toc/
 Description: 	A powerful yet user friendly plugin that automatically creates a table of contents. Can also output a sitemap listing all pages and categories.
-Author: 		Michael Tran
+Author: 		Michael Tran, Peter Shackelford
 Author URI: 	http://dublue.com/
 Version: 		1505
 License:		GPL2
@@ -1346,13 +1346,13 @@ wp_reset_postdata();
 				if ( $current_depth != (int)$matches[$i][2] ) {
 					for ($current_depth; $current_depth < (int)$matches[$i][2]; $current_depth++) {
 						$numbered_items[$current_depth + 1] = 0;
-						$html .= '<ul><li>';
+						$html .= '<ul data-magellan-expedition="fixed" ><li>';
 					}
 				}
 				
 				// list item
 				if ( in_array($matches[$i][2], $this->options['heading_levels']) ) {
-					$html .= '<a href="#' . $this->url_anchor_target( $matches[$i][0] ) . '">';
+					$html .= '<a data-magellan-arrival="' . $this->url_anchor_target( $matches[$i][0] ) . '" href="#' . $this->url_anchor_target( $matches[$i][0] ) . '">';
 					if ( $this->options['ordered_list'] ) {
 						// attach leading numbers when lower in hierarchy
 						$html .= '<span class="toc_number toc_depth_' . ($current_depth - $numbered_items_min + 1) . '">';
@@ -1519,7 +1519,7 @@ wp_reset_postdata();
 									'</h' . $matches[$i][2] . '>'	// end of heading
 								),
 								array(
-									$matches[$i][1] . '<span id="' . $anchor . '">',
+									$matches[$i][1] . '<span data-magellan-destination="' . $anchor . '" id="' . $anchor . '">',
 									'</span></h' . $matches[$i][2] . '>'
 								),
 								$matches[$i][0]
@@ -1765,7 +1765,7 @@ if ( !class_exists( 'toc_widget' ) ) :
 					if ( !$title ) $title = $toc_options['heading_text'];
 					echo 
 						$before_title . $title . $after_title .
-						'<ul class="toc_widget_list' . $css_classes . '">' . $items . '</ul>'
+						'<ul data-magellan-expedition="fixed" class="toc_widget_list' . $css_classes . '">' . $items . '</ul>'
 					;
 					
 					// after widget (defined by themes)
